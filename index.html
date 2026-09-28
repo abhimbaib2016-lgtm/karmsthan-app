@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KARMSTHAN | Hiring Intelligence Platform</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
+      min-height: 100vh;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---------- HEADER ---------- */
+
+    header {
+      height: 72px;
+      background: #ffffff;
+      border-bottom: 1px solid #e6e9f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 42px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #111827, #3949ab);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 19px;
+    }
+
+    .brand-name {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: #7a8499;
+      margin-top: 2px;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #667085;
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #16a34a;
+    }
+
+    /* ---------- MAIN ---------- */
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 52px 28px 70px;
+    }
+
+    .hero {
+      text-align: center;
+      max-width: 850px;
+      margin: 0 auto 46px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      background: #eef0ff;
+      color: #3949ab;
+      border-radius: 30px;
+      padding: 8px 15px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 58px);
+      line-height: 1.08;
+      letter-spacing: -2px;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 span {
+      color: #3949ab;
+    }
+
+    .hero p {
+      max-width: 680px;
+      margin: 0 auto;
+      color: #667085;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    /* ---------- ROLE CARDS ---------- */
+
+    .role-section {
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .section-title h2 {
+      font-size: 22px;
+      margin-bottom: 7px;
+    }
+
+    .section-title p {
+      color: #7a8499;
+      font-size: 14px;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .role-card {
+      background: white;
+      border: 1px solid #e5e8ef;
+      border-radius: 18px;
+      padding: 28px 24px;
+      cursor: pointer;
+      transition: all .2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .role-card:hover {
+      transform: translateY(-4px);
+      border-color: #b7bef5;
+      box-shadow: 0 15px 35px rgba(30, 41, 90, .09);
+    }
+
+    .role-card.selected {
+      border-color: #3949ab;
+      box-shadow: 0 0 0 3px rgba(57, 73, 171, .10);
+    }
+
+    .role-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 13px;
+      background: #f0f2ff;
+      color: #3949ab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 19px;
+    }
+
+    .role-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .role-card p {
+      color: #70798c;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 63px;
+    }
+
+    .role-action {
+      margin-top: 19px;
+      color: #3949ab;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* ---------- LOGIN PANEL ---------- */
+
+    .login-panel {
+      max-width: 500px;
+      margin: 38px auto 0;
+      background: white;
+      border: 1px solid #e5e8ef;
+      border-radius: 18px;
+      padding: 30px;
+      display: none;
+      box-shadow: 0 15px 40px rgba(30, 41, 90, .07);
+    }
+
+    .login-panel.visible {
+      display: block;
+    }
+
+    .login-panel h3 {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .login-description {
+      color: #7a8499;
+      font-size: 13px;
+      margin-bottom: 23px;
+    }
+
+    .selected-role {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 20px;
+      background: #eef0ff;
+      color: #3949ab;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      color: #3e4759;
+    }
+
+    .form-group input {
+      width: 100%;
+      height: 46px;
+      border: 1px solid #dfe3eb;
+      border-radius: 9px;
+      padding: 0 13px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: #3949ab;
+      box-shadow: 0 0 0 3px rgba(57, 73, 171, .09);
+    }
+
+    .primary-btn {
+      width: 100%;
+      height: 47px;
+      border: 0;
+      border-radius: 9px;
+      background: #3949ab;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .primary-btn:hover {
+      background: #303f9f;
+    }
+
+    .secondary-btn {
+      width: 100%;
+      height: 45px;
+      border: 1px solid #dfe3eb;
+      border-radius: 9px;
+      background: white;
+      color: #344054;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .demo-note {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 11px;
+      color: #98a1b2;
+    }
+
+    /* ---------- PRODUCT FEATURES ---------- */
+
+    .features {
+      max-width: 1060px;
+      margin: 70px auto 0;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .feature {
+      background: white;
+      border: 1px solid #e8ebf1;
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .feature strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 7px;
+    }
+
+    .feature span {
+      color: #7a8499;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* ---------- FOOTER ---------- */
+
+    footer {
+      background: #111827;
+      color: #aeb6c5;
+      text-align: center;
+      padding: 22px;
+      font-size: 11px;
+    }
+
+    footer strong {
+      color: white;
+    }
+
+    /* ---------- MOBILE ---------- */
+
+    @media (max-width: 800px) {
+      header {
+        padding: 0 18px;
+      }
+
+      .header-status {
+        display: none;
+      }
+
+      main {
+        padding: 38px 18px 55px;
+      }
+
+      .role-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero p {
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .login-panel {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">K</div>
+      <div>
+        <div class="brand-name">KARMSTHAN</div>
+        <div class="brand-subtitle">Hiring Intelligence Platform</div>
+      </div>
+    </div>
+
+    <div class="header-status">
+      <span class="status-dot"></span>
+      Platform foundation online
+    </div>
+  </header>
+
+
+  <main>
+
+    <section class="hero">
+
+      <div class="eyebrow">
+        AI-POWERED HIRING INTELLIGENCE
+      </div>
+
+      <h1>
+        Hire with <span>better intelligence.</span>
+      </h1>
+
+      <p>
+        KARMSTHAN connects jobs, candidates, recruitment decisions and
+        hiring outcomes in one intelligent platform.
+      </p>
+
+    </section>
+
+
+    <section class="role-section">
+
+      <div class="section-title">
+        <h2>How will you use KARMSTHAN?</h2>
+        <p>Select your role to enter the platform.</p>
+      </div>
+
+
+      <div class="role-grid">
+
+        <div class="role-card" onclick="selectRole('Employer', this)">
+          <div class="role-icon">🏢</div>
+          <h3>Employer</h3>
+          <p>
+            Create jobs, review candidates, evaluate hiring readiness
+            and manage your recruitment pipeline.
+          </p>
+          <div class="role-action">Continue as Employer →</div>
+        </div>
+
+
+        <div class="role-card" onclick="selectRole('Recruiter', this)">
+          <div class="role-icon">👥</div>
+          <h3>Recruiter</h3>
+          <p>
+            Manage candidate submissions, track hiring progress and
+            understand recruitment outcomes.
+          </p>
+          <div class="role-action">Continue as Recruiter →</div>
+        </div>
+
+
+        <div class="role-card" onclick="selectRole('Candidate', this)">
+          <div class="role-icon">🎯</div>
+          <h3>Candidate</h3>
+          <p>
+            Build your profile, discover opportunities and understand
+            your alignment with available roles.
+          </p>
+          <div class="role-action">Continue as Candidate →</div>
+        </div>
+
+      </div>
+
+
+      <div class="login-panel" id="loginPanel">
+
+        <div class="selected-role" id="selectedRole">
+          ROLE
+        </div>
+
+        <h3>Welcome to KARMSTHAN</h3>
+
+        <p class="login-description">
+          Sign in or create your KARMSTHAN account.
+        </p>
+
+        <form onsubmit="handleLogin(event)">
+
+          <div class="form-group">
+            <label>Email address</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="you@company.com"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              required
+            >
+          </div>
+
+          <button class="primary-btn" type="submit">
+            Sign in
+          </button>
+
+          <button
+            class="secondary-btn"
+            type="button"
+            onclick="createAccount()"
+          >
+            Create account
+          </button>
+
+        </form>
+
+        <div class="demo-note">
+          Secure authentication will be connected to Supabase in the next stage.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <section class="features">
+
+      <div class="section-title">
+        <h2>Built around the hiring outcome</h2>
+        <p>KARMSTHAN is designed to go beyond traditional applicant tracking.</p>
+      </div>
+
+      <div class="feature-grid">
+
+        <div class="feature">
+          <strong>🎯 Hiring Readiness</strong>
+          <span>
+            Understand candidate-job alignment using structured hiring signals.
+          </span>
+        </div>
+
+        <div class="feature">
+          <strong>🧠 AI Assessment</strong>
+          <span>
+            Generate contextual candidate insights instead of simple keyword matching.
+          </span>
+        </div>
+
+        <div class="feature">
+          <strong>📊 Hiring Intelligence</strong>
+          <span>
+            Connect recruitment activity with measurable hiring outcomes.
+          </span>
+        </div>
+
+        <div class="feature">
+          <strong>🔄 Outcome Tracking</strong>
+          <span>
+            Follow the journey from application through joining and retention.
+          </span>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <footer>
+    <strong>KARMSTHAN™</strong> · Hiring Intelligence Platform
+    <br>
+    A brand of Vivaansh Infoservices Private Limited
+  </footer>
+
+</div>
+
+
+<script>
+
+  let selectedRole = "";
+
+  function selectRole(role, element) {
+
+    selectedRole = role;
+
+    document.querySelectorAll(".role-card").forEach(card => {
+      card.classList.remove("selected");
+    });
+
+    element.classList.add("selected");
+
+    document.getElementById("selectedRole").textContent =
+      "CONTINUE AS " + role.toUpperCase();
+
+    document.getElementById("loginPanel").classList.add("visible");
+
+    document.getElementById("loginPanel").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+
+
+  function handleLogin(event) {
+
+    event.preventDefault();
+
+    alert(
+      "KARMSTHAN authentication will be connected to Supabase next.\\n\\nSelected role: "
+      + selectedRole
+    );
+  }
+
+
+  function createAccount() {
+
+    alert(
+      "KARMSTHAN account registration will be connected to Supabase Auth next.\\n\\nSelected role: "
+      + selectedRole
+    );
+  }
+
+</script>
+
+</body>
+</html>
