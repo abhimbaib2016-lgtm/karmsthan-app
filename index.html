@@ -990,23 +990,21 @@
           }
 
 
-          const { data, error } =
-            await supabaseClient.auth.signUp({
+          const redirectUrl =
+    window.location.origin + window.location.pathname;
 
-              email: email,
-
-              password: password,
-
-              options: {
-
-                data: {
-                  full_name: fullName,
-                  role: selectedRole
-                }
-
-              }
-
-            });
+const { data, error } =
+    await supabaseClient.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+                full_name: fullName,
+                role: selectedRole
+            }
+        }
+    });
 
 
           if (error) {
