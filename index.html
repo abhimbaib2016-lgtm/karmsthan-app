@@ -738,7 +738,82 @@
     </div>
 
 
-    <div class="dashboard-grid">
+    <!-- COMPANY SETUP -->
+    <div id="companySetupCard" class="dashboard-card hidden" style="margin-bottom:25px;">
+
+      <div class="role-badge">
+        COMPANY SETUP
+      </div>
+
+      <h3>Set up your company</h3>
+
+      <p>
+        Before creating jobs, tell KARMSTHAN a little about your organization.
+        This creates your secure employer workspace.
+      </p>
+
+      <form id="companySetupForm" style="margin-top:22px;">
+
+        <div class="form-group">
+          <label>Company name</label>
+          <input
+            type="text"
+            id="companyName"
+            placeholder="e.g. Vivaansh Infoservices"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Company website</label>
+          <input
+            type="url"
+            id="companyWebsite"
+            placeholder="https://www.example.com"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Industry</label>
+          <input
+            type="text"
+            id="companyIndustry"
+            placeholder="e.g. Information Technology / Recruitment"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Company size</label>
+          <select
+            id="companySize"
+            style="width:100%;height:45px;border:1px solid #dfe3eb;border-radius:9px;padding:0 12px;outline:none;font-size:14px;background:#fff;"
+          >
+            <option value="">Select company size</option>
+            <option value="1-10">1–10 employees</option>
+            <option value="11-50">11–50 employees</option>
+            <option value="51-200">51–200 employees</option>
+            <option value="201-500">201–500 employees</option>
+            <option value="501-1000">501–1,000 employees</option>
+            <option value="1000+">1,000+ employees</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          class="primary-btn"
+          id="companyCreateButton"
+        >
+          Create company workspace
+        </button>
+
+      </form>
+
+      <div class="message" id="companyMessage"></div>
+
+    </div>
+
+    <div id="dashboardContent">
+      <div class="dashboard-grid">
 
       <div class="stat-card">
         <div class="stat-label">ACTIVE JOBS</div>
@@ -1157,6 +1232,190 @@ const { data, error } =
   /* =========================================================
      LOGOUT
      ========================================================= */
+/* =========================================================
+   COMPANY SETUP
+========================================================= */
+
+function showCompanyMessage(message, isError = false) {
+
+  const messageElement =
+    document.getElementById("companyMessage");
+
+  if (!messageElement) return;
+
+  messageElement.textContent = message;
+  messageElement.style.display = "block";
+  messageElement.style.marginTop = "16px";
+  messageElement.style.padding = "12px 14px";
+  messageElement.style.borderRadius = "8px";
+
+  messageElement.style.background =
+    isError ? "#fff1f2" : "#ecfdf5";
+
+  messageElement.style.color =
+    isError ? "#b42318" : "#027a48";
+}
+
+
+async function createCompany(event) {
+
+  event.preventDefault();
+
+  const button =
+    document.getElementById("companyCreateButton");
+
+  const companyName =
+    document.getElementById("companyName").value.trim();
+
+  const companyWebsite =
+    document.getElementById("companyWebsite").value.trim();
+
+  const companyIndustry =
+    document.getElementById("companyIndustry").value.trim();
+
+  const companySize =
+    document.getElementById("companySize").value;
+
+  if (!companyName) {
+
+    showCompanyMessage(
+      "Please enter your company name.",
+      true
+    );
+
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Creating workspace...";
+
+  showCompanyMessage(
+    "Creating your secure company workspace..."
+  );
+
+  try {
+
+    const {
+      data,
+      error: userError
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !data.user) {
+      throw new Error(
+        "Your login session has expired. Please sign in again."
+      );
+    }
+
+    const user = data.user;
+
+    /*
+     * Generate the company UUID in the browser.
+     * This lets us create the owner membership
+     * immediately after the company.
+     */
+    const companyId = crypto.randomUUID();
+
+    /* Create company */
+
+    const {
+      error: companyError
+    } = await supabaseClient
+      .from("companies")
+      .insert({
+        id: companyId,
+        name: companyName,
+        website: companyWebsite || null,
+        industry: companyIndustry || null,
+        company_size: companySize || null,
+        created_by: user.id
+      });
+
+    if (companyError) {
+      throw companyError;
+    }
+
+    /* Create owner membership */
+
+    const {
+      error: membershipError
+    } = await supabaseClient
+      .from("company_members")
+      .insert({
+        company_id: companyId,
+        user_id: user.id,
+        member_role: "owner"
+      });
+
+    if (membershipError) {
+      throw membershipError;
+    }
+
+    /* Store company for upcoming modules */
+
+    window.karmsthanCompany = {
+      id: companyId,
+      name: companyName,
+      website: companyWebsite || null,
+      industry: companyIndustry || null,
+      company_size: companySize || null,
+      created_by: user.id
+    };
+
+    window.karmsthanCompanyMembership = {
+      company_id: companyId,
+      user_id: user.id,
+      member_role: "owner"
+    };
+
+    /* Hide setup screen */
+
+    document
+      .getElementById("companySetupCard")
+      ?.classList.add("hidden");
+
+    /* Show dashboard */
+
+    document
+      .getElementById("dashboardContent")
+      ?.classList.remove("hidden");
+
+    showCompanyMessage(
+      "Company workspace created successfully."
+    );
+
+    document
+      .getElementById("companySetupForm")
+      ?.reset();
+
+  } catch (error) {
+
+    console.error(
+      "Company creation failed:",
+      error
+    );
+
+    showCompanyMessage(
+      error.message ||
+      "Unable to create the company workspace.",
+      true
+    );
+
+  } finally {
+
+    button.disabled = false;
+    button.textContent = "Create company workspace";
+  }
+}
+
+
+/* Connect Company Setup form */
+
+document
+  .getElementById("companySetupForm")
+  ?.addEventListener(
+    "submit",
+    createCompany
+  );
 
   async function logout() {
 
