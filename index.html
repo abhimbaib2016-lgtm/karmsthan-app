@@ -817,7 +817,7 @@
 
       <div class="stat-card">
         <div class="stat-label">ACTIVE JOBS</div>
-        <div class="stat-value">0</div>
+      <div class="stat-value" id="activeJobsCount">0</div>
       </div>
 
       <div class="stat-card">
@@ -859,12 +859,24 @@
           </span>
         </div>
 
-        <div class="coming-item">
-          <strong>📄 Job Management</strong>
-          <span>
-            Create and manage hiring requirements.
-          </span>
-        </div>
+       <div class="coming-item" id="jobManagementCard" style="cursor:pointer;">
+
+  <strong>📄 Job Management</strong>
+
+  <span>
+    Create and manage hiring requirements.
+  </span>
+
+  <button
+    type="button"
+    class="primary-btn"
+    style="margin-top:14px;width:auto;padding:10px 18px;"
+    onclick="openJobManagement()"
+  >
+    Manage Jobs
+  </button>
+
+</div>
 
         <div class="coming-item">
           <strong>👤 Candidate Intelligence</strong>
@@ -876,7 +888,407 @@
       </div>
 
     </div>
+<!-- JOB MANAGEMENT WORKSPACE -->
 
+<div
+  id="jobManagementView"
+  class="dashboard-card hidden"
+  style="margin-top:25px;"
+>
+
+  <div
+    style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+      flex-wrap:wrap;
+    "
+  >
+
+    <div>
+
+      <div class="role-badge">
+        JOB MANAGEMENT
+      </div>
+
+      <h3 style="margin-top:12px;">
+        Hiring requirements
+      </h3>
+
+      <p>
+        Create, manage and track your company's hiring requirements.
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      class="primary-btn"
+      onclick="showCreateJobForm()"
+      style="width:auto;padding:11px 20px;"
+    >
+      + Create New Job
+    </button>
+
+  </div>
+
+
+  <!-- CREATE JOB FORM -->
+
+  <div
+    id="createJobFormContainer"
+    class="hidden"
+    style="
+      margin-top:25px;
+      padding-top:25px;
+      border-top:1px solid #e6e9ef;
+    "
+  >
+
+    <h3>Create a new job</h3>
+
+    <p>
+      Add the hiring requirement you want KARMSTHAN to analyze.
+    </p>
+
+
+    <form id="createJobForm" style="margin-top:22px;">
+
+      <div class="form-group">
+
+        <label>Job title *</label>
+
+        <input
+          type="text"
+          id="jobTitle"
+          placeholder="e.g. Senior Java Developer"
+          required
+        >
+
+      </div>
+
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:18px;
+        "
+      >
+
+        <div class="form-group">
+
+          <label>Department</label>
+
+          <input
+            type="text"
+            id="jobDepartment"
+            placeholder="e.g. Engineering"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Location</label>
+
+          <input
+            type="text"
+            id="jobLocation"
+            placeholder="e.g. Bangalore / Hybrid"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Employment type</label>
+
+        <select
+          id="jobEmploymentType"
+          style="
+            width:100%;
+            height:45px;
+            border:1px solid #dfe3eb;
+            border-radius:9px;
+            padding:0 12px;
+            font-size:14px;
+            background:#fff;
+          "
+        >
+
+          <option value="">
+            Select employment type
+          </option>
+
+          <option value="Full-time">
+            Full-time
+          </option>
+
+          <option value="Part-time">
+            Part-time
+          </option>
+
+          <option value="Contract">
+            Contract
+          </option>
+
+          <option value="Internship">
+            Internship
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:18px;
+        "
+      >
+
+        <div class="form-group">
+
+          <label>Minimum experience (years)</label>
+
+          <input
+            type="number"
+            id="jobExperienceMin"
+            min="0"
+            step="0.5"
+            placeholder="e.g. 5"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Maximum experience (years)</label>
+
+          <input
+            type="number"
+            id="jobExperienceMax"
+            min="0"
+            step="0.5"
+            placeholder="e.g. 8"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:1fr 1fr 120px;
+          gap:18px;
+        "
+      >
+
+        <div class="form-group">
+
+          <label>Minimum salary</label>
+
+          <input
+            type="number"
+            id="jobSalaryMin"
+            min="0"
+            step="0.01"
+            placeholder="e.g. 2000000"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Maximum salary</label>
+
+          <input
+            type="number"
+            id="jobSalaryMax"
+            min="0"
+            step="0.01"
+            placeholder="e.g. 3000000"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Currency</label>
+
+          <select
+            id="jobCurrency"
+            style="
+              width:100%;
+              height:45px;
+              border:1px solid #dfe3eb;
+              border-radius:9px;
+              padding:0 8px;
+              font-size:14px;
+              background:#fff;
+            "
+          >
+
+            <option value="INR">
+              INR
+            </option>
+
+            <option value="USD">
+              USD
+            </option>
+
+            <option value="EUR">
+              EUR
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Job description *</label>
+
+        <textarea
+          id="jobDescription"
+          rows="10"
+          placeholder="Paste or write the complete job description..."
+          required
+          style="
+            width:100%;
+            border:1px solid #dfe3eb;
+            border-radius:9px;
+            padding:12px;
+            font-size:14px;
+            resize:vertical;
+            box-sizing:border-box;
+          "
+        ></textarea>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Job status</label>
+
+        <select
+          id="jobStatus"
+          style="
+            width:100%;
+            height:45px;
+            border:1px solid #dfe3eb;
+            border-radius:9px;
+            padding:0 12px;
+            font-size:14px;
+            background:#fff;
+          "
+        >
+
+          <option value="open">
+            Open
+          </option>
+
+          <option value="draft">
+            Draft
+          </option>
+
+          <option value="closed">
+            Closed
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div
+        style="
+          display:flex;
+          gap:12px;
+          flex-wrap:wrap;
+          margin-top:20px;
+        "
+      >
+
+        <button
+          type="submit"
+          class="primary-btn"
+          id="saveJobButton"
+          style="width:auto;padding:11px 22px;"
+        >
+          Save Job
+        </button>
+
+
+        <button
+          type="button"
+          class="secondary-btn"
+          onclick="hideCreateJobForm()"
+          style="padding:11px 22px;"
+        >
+          Cancel
+        </button>
+
+      </div>
+
+
+      <div
+        id="jobMessage"
+        class="message"
+      ></div>
+
+    </form>
+
+  </div>
+
+
+  <!-- JOB LIST -->
+
+  <div
+    id="jobListContainer"
+    style="margin-top:30px;"
+  >
+
+    <div
+      style="
+        padding:20px;
+        border:1px solid #e6e9ef;
+        border-radius:12px;
+        background:#fafbfc;
+      "
+    >
+
+      <strong>Your jobs</strong>
+
+      <p
+        id="jobListEmpty"
+        style="margin-bottom:0;"
+      >
+        No jobs created yet. Create your first hiring requirement.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
   </section>
 
 </main>
@@ -1513,7 +1925,471 @@ document
     "submit",
     createCompany
   );
+/* =========================================================
+   JOB MANAGEMENT
+   ========================================================= */
 
+async function getCurrentCompany() {
+
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Your session has expired. Please sign in again.");
+  }
+
+  const { data: membership, error: membershipError } =
+    await supabaseClient
+      .from("company_members")
+      .select("company_id, member_role")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+  if (membershipError) {
+    throw membershipError;
+  }
+
+  if (!membership) {
+    throw new Error("No company workspace is linked to your account.");
+  }
+
+  const { data: company, error: companyError } =
+    await supabaseClient
+      .from("companies")
+      .select("*")
+      .eq("id", membership.company_id)
+      .maybeSingle();
+
+  if (companyError) {
+    throw companyError;
+  }
+
+  if (!company) {
+    throw new Error("Company workspace could not be found.");
+  }
+
+  return {
+    user,
+    company,
+    membership
+  };
+}
+
+
+/* Open Job Management */
+
+async function openJobManagement() {
+
+  const jobView =
+    document.getElementById("jobManagementView");
+
+  if (!jobView) return;
+
+  jobView.classList.remove("hidden");
+
+  jobView.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+  await loadJobs();
+}
+
+
+/* Show create-job form */
+
+function showCreateJobForm() {
+
+  const container =
+    document.getElementById("createJobFormContainer");
+
+  if (!container) return;
+
+  container.classList.remove("hidden");
+
+  document
+    .getElementById("jobTitle")
+    ?.focus();
+}
+
+
+/* Hide create-job form */
+
+function hideCreateJobForm() {
+
+  const container =
+    document.getElementById("createJobFormContainer");
+
+  if (!container) return;
+
+  container.classList.add("hidden");
+
+  document
+    .getElementById("createJobForm")
+    ?.reset();
+
+  const message =
+    document.getElementById("jobMessage");
+
+  if (message) {
+    message.className = "message";
+    message.textContent = "";
+  }
+}
+
+
+/* Load existing jobs */
+
+async function loadJobs() {
+
+  const emptyState =
+    document.getElementById("jobListEmpty");
+
+  try {
+
+    const { company } =
+      await getCurrentCompany();
+
+    const {
+      data: jobs,
+      error
+    } = await supabaseClient
+      .from("jobs")
+      .select("*")
+      .eq("company_id", company.id)
+      .order("created_at", {
+        ascending: false
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!jobs || jobs.length === 0) {
+
+      if (emptyState) {
+        emptyState.textContent =
+          "No jobs created yet. Create your first hiring requirement.";
+      }
+
+      updateActiveJobsCount(0);
+
+      return;
+    }
+
+    updateActiveJobsCount(
+      jobs.filter(job => job.status === "open").length
+    );
+
+    renderJobs(jobs);
+
+  } catch (error) {
+
+    console.error("Load jobs error:", error);
+
+    if (emptyState) {
+      emptyState.textContent =
+        "Unable to load jobs right now.";
+    }
+
+  }
+}
+
+
+/* Render job list */
+
+function renderJobs(jobs) {
+
+  const container =
+    document.getElementById("jobListContainer");
+
+  if (!container) return;
+
+  let html = `
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:15px;
+    ">
+      <strong>Your jobs</strong>
+      <span style="
+        color:#7a8499;
+        font-size:12px;
+      ">
+        ${jobs.length} total
+      </span>
+    </div>
+  `;
+
+  jobs.forEach(job => {
+
+    const status =
+      job.status || "draft";
+
+    const statusLabel =
+      status.charAt(0).toUpperCase() +
+      status.slice(1);
+
+    html += `
+      <div style="
+        border:1px solid #e6e9ef;
+        border-radius:12px;
+        padding:18px;
+        margin-bottom:12px;
+        background:#fff;
+      ">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:15px;
+        ">
+
+          <div>
+
+            <strong style="
+              font-size:15px;
+            ">
+              ${escapeHtml(job.title)}
+            </strong>
+
+            <div style="
+              margin-top:6px;
+              color:#7a8499;
+              font-size:12px;
+            ">
+              ${escapeHtml(job.location || "Location not specified")}
+              ·
+              ${escapeHtml(job.employment_type || "Employment type not specified")}
+            </div>
+
+          </div>
+
+          <span style="
+            padding:5px 9px;
+            border-radius:20px;
+            background:#eef0ff;
+            color:#3949ab;
+            font-size:10px;
+            font-weight:700;
+          ">
+            ${escapeHtml(statusLabel)}
+          </span>
+
+        </div>
+
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+
+/* Save new job */
+
+async function createJob(event) {
+
+  event.preventDefault();
+
+  const button =
+    document.getElementById("saveJobButton");
+
+  const message =
+    document.getElementById("jobMessage");
+
+  if (!button) return;
+
+  button.disabled = true;
+  button.textContent = "Saving job...";
+
+  if (message) {
+    message.className = "message";
+    message.textContent = "";
+  }
+
+  try {
+
+    const {
+      user,
+      company
+    } = await getCurrentCompany();
+
+
+    const title =
+      document.getElementById("jobTitle")
+        .value
+        .trim();
+
+    const department =
+      document.getElementById("jobDepartment")
+        .value
+        .trim();
+
+    const location =
+      document.getElementById("jobLocation")
+        .value
+        .trim();
+
+    const employmentType =
+      document.getElementById("jobEmploymentType")
+        .value;
+
+    const experienceMin =
+      document.getElementById("jobExperienceMin")
+        .value;
+
+    const experienceMax =
+      document.getElementById("jobExperienceMax")
+        .value;
+
+    const salaryMin =
+      document.getElementById("jobSalaryMin")
+        .value;
+
+    const salaryMax =
+      document.getElementById("jobSalaryMax")
+        .value;
+
+    const currency =
+      document.getElementById("jobCurrency")
+        .value;
+
+    const jdText =
+      document.getElementById("jobDescription")
+        .value
+        .trim();
+
+    const status =
+      document.getElementById("jobStatus")
+        .value;
+
+
+    if (!title) {
+      throw new Error("Please enter a job title.");
+    }
+
+    if (!jdText) {
+      throw new Error("Please enter the job description.");
+    }
+
+
+    const { error } =
+      await supabaseClient
+        .from("jobs")
+        .insert({
+          company_id: company.id,
+          created_by: user.id,
+          title: title,
+          department: department || null,
+          location: location || null,
+          employment_type: employmentType || null,
+          experience_min:
+            experienceMin
+              ? Number(experienceMin)
+              : null,
+          experience_max:
+            experienceMax
+              ? Number(experienceMax)
+              : null,
+          salary_min:
+            salaryMin
+              ? Number(salaryMin)
+              : null,
+          salary_max:
+            salaryMax
+              ? Number(salaryMax)
+              : null,
+          currency: currency || "INR",
+          jd_text: jdText,
+          status: status || "open"
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (message) {
+
+      message.textContent =
+        "Job created successfully.";
+
+      message.className =
+        "message show success";
+    }
+
+
+    document
+      .getElementById("createJobForm")
+      .reset();
+
+
+    await loadJobs();
+
+
+  } catch (error) {
+
+    console.error("Create job error:", error);
+
+    if (message) {
+
+      message.textContent =
+        error.message ||
+        "Unable to create the job.";
+
+      message.className =
+        "message show error";
+    }
+
+  } finally {
+
+    button.disabled = false;
+    button.textContent = "Save Job";
+  }
+}
+
+
+/* Active jobs dashboard count */
+
+function updateActiveJobsCount(count) {
+
+  const element =
+    document.getElementById("activeJobsCount");
+
+  if (element) {
+    element.textContent = count;
+  }
+}
+
+
+/* Basic HTML escaping */
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+/* Connect Create Job form */
+
+document
+  .getElementById("createJobForm")
+  ?.addEventListener(
+    "submit",
+    createJob
+  );
   async function logout() {
 
     await supabaseClient.auth.signOut();
