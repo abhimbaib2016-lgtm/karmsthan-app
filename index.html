@@ -1169,64 +1169,161 @@ const { data, error } =
      LOAD CURRENT USER
      ========================================================= */
 
-  async function loadCurrentUser() {
+async function loadCurrentUser() {
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient.auth.getUser();
+  const {
+    data,
+    error
+  } = await supabaseClient.auth.getUser();
 
-
-    if (error || !data.user) {
-      return;
-    }
-
-
-    const user =
-      data.user;
-
-
-    const metadata =
-      user.user_metadata || {};
-
-
-    const name =
-      metadata.full_name ||
-      user.email ||
-      "KARMSTHAN User";
-
-
-    const role =
-      metadata.role ||
-      selectedRole ||
-      "User";
-
-
-    document.getElementById("welcomeTitle").textContent =
-      "Welcome, " + name;
-
-
-    document.getElementById("welcomeSubtitle").textContent =
-      role + " workspace · KARMSTHAN Hiring Intelligence";
-
-
-    document
-      .getElementById("landingView")
-      .classList.add("hidden");
-
-
-    document
-      .getElementById("dashboardView")
-      .classList.remove("hidden");
-
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-
+  if (error || !data.user) {
+    return;
   }
+
+  const user = data.user;
+
+  const metadata = user.user_metadata || {};
+
+  const name =
+    metadata.full_name ||
+    user.email ||
+    "KARMSTHAN User";
+
+  const role =
+    metadata.role ||
+    selectedRole ||
+    "User";
+
+  document.getElementById("welcomeTitle").textContent =
+    "Welcome, " + name;
+
+  document.getElementById("welcomeSubtitle").textContent =
+    role + " workspace · KARMSTHAN Hiring Intelligence";
+
+  /* Show authenticated dashboard */
+  document
+    .getElementById("landingView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("dashboardView")
+    .classList.remove("hidden");
+
+  /*
+   * Only Employers need a company workspace
+   * at this stage.
+   */
+  if (role !== "Employer") {
+
+    document
+      .getElementById("companySetupCard")
+      ?.classList.add("hidden");
+
+    document
+      .getElementById("dashboardContent")
+      ?.classList.remove("hidden");
+
+    return;
+  }
+
+  /* Check whether Employer already belongs to a company */
+
+  const {
+    data: membership,
+    error: membershipError
+  } = await supabaseClient
+    .from("company_members")
+    .select("company_id, member_role")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
+
+  if (membershipError) {
+
+    console.error(
+      "Company membership lookup failed:",
+      membershipError
+    );
+
+    showCompanyMessage(
+      "Unable to load your company workspace. Please refresh and try again.",
+      true
+    );
+
+    return;
+  }
+
+  /* No company → show Company Setup */
+
+  if (!membership) {
+
+    document
+      .getElementById("companySetupCard")
+      ?.classList.remove("hidden");
+
+    document
+      .getElementById("dashboardContent")
+      ?.classList.add("hidden");
+
+    return;
+  }
+
+  /* Company exists → load company */
+
+  const {
+    data: company,
+    error: companyError
+  } = await supabaseClient
+    .from("companies")
+    .select("*")
+    .eq("id", membership.company_id)
+    .maybeSingle();
+
+  if (companyError || !company) {
+
+    console.error(
+      "Company lookup failed:",
+      companyError
+    );
+
+    showCompanyMessage(
+      "Your company workspace could not be loaded.",
+      true
+    );
+
+    return;
+  }
+
+  /* Store company context */
+
+  window.karmsthanCompany = company;
+
+  window.karmsthanCompanyMembership =
+    membership;
+
+  /* Company exists → show dashboard */
+
+  document
+    .getElementById("companySetupCard")
+    ?.classList.add("hidden");
+
+  document
+    .getElementById("dashboardContent")
+    ?.classList.remove("hidden");
+
+  document
+    .getElementById("welcomeSubtitle")
+    .textContent =
+      role +
+      " workspace · " +
+      company.name +
+      " · KARMSTHAN Hiring Intelligence";
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
 
 
   /* =========================================================
