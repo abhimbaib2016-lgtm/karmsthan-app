@@ -1024,6 +1024,38 @@
       }
     }
 
+
+    /* =========================================================
+       HIRING INTELLIGENCE V1
+       ========================================================= */
+    .intelligence-panel{margin-top:22px;overflow:hidden;position:relative;background:radial-gradient(circle at 100% 0%,rgba(255,116,23,.09),transparent 240px),linear-gradient(135deg,#fff 0%,#f6faff 100%)}
+    .intelligence-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:22px}
+    .intelligence-kicker{color:#ff7417;font-size:10px;font-weight:900;letter-spacing:.13em;margin-bottom:8px}
+    .intelligence-header h3{font-size:25px;color:#0b2f6b;letter-spacing:-.5px;margin-bottom:7px}
+    .intelligence-header p{max-width:700px;color:#66758b;line-height:1.7}
+    .intelligence-action{width:auto!important;min-width:170px;padding:11px 18px;white-space:nowrap}
+    .intelligence-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+    .intelligence-metric{border:1px solid #dce5ef;border-radius:14px;padding:17px;background:rgba(255,255,255,.88)}
+    .intelligence-metric .metric-label{color:#718096;font-size:9px;font-weight:900;letter-spacing:.1em;margin-bottom:7px}
+    .intelligence-metric strong{display:block;color:#0b2f6b;font-size:23px}
+    .intelligence-metric small{display:block;color:#8a97a9;font-size:10px;margin-top:4px}
+    .intelligence-list{display:grid;gap:10px}
+    .intelligence-row{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;border:1px solid #e0e7f0;border-radius:14px;padding:15px 17px;background:#fff;transition:.18s ease}
+    .intelligence-row:hover{border-color:#cbd9e8;box-shadow:0 8px 22px rgba(18,61,104,.06)}
+    .intelligence-candidate{display:flex;align-items:center;gap:13px;min-width:0}
+    .intelligence-avatar{width:40px;height:40px;border-radius:12px;background:#edf4ff;color:#0b2f6b;display:flex;align-items:center;justify-content:center;font-weight:900;flex:0 0 auto}
+    .intelligence-candidate strong{display:block;color:#0b2f6b;font-size:13px;margin-bottom:4px}
+    .intelligence-candidate span{display:block;color:#718096;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:650px}
+    .readiness-score{min-width:78px;text-align:center;border-radius:12px;padding:9px 10px;background:#eef5ff;border:1px solid #d8e7f8}
+    .readiness-score strong{display:block;color:#0b2f6b;font-size:18px}
+    .readiness-score span{color:#718096;font-size:8px;font-weight:900;letter-spacing:.08em}
+    .intelligence-empty{border:1px dashed #cdd9e6;border-radius:14px;padding:28px;text-align:center;background:rgba(255,255,255,.65)}
+    .intelligence-empty strong{display:block;color:#0b2f6b;margin-bottom:6px}
+    .intelligence-empty span{color:#718096;font-size:12px}
+    .intelligence-footnote{margin-top:14px;color:#8a97a9;font-size:10px;line-height:1.6}
+    @media(max-width:850px){.intelligence-header{display:block}.intelligence-action{margin-top:16px}.intelligence-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:560px){.intelligence-metrics{grid-template-columns:1fr 1fr}.intelligence-row{grid-template-columns:1fr}.readiness-score{width:100%}.intelligence-candidate span{max-width:100%}}
+
 </style>
 </head>
 
@@ -1454,6 +1486,28 @@
         </div>
 
       </div>
+
+    <!-- HIRING INTELLIGENCE -->
+    <div id="hiringIntelligencePanel" class="dashboard-card intelligence-panel">
+      <div class="intelligence-header">
+        <div>
+          <div class="intelligence-kicker">KARMSTHAN INTELLIGENCE ENGINE · V1</div>
+          <h3>Hiring Readiness</h3>
+          <p>Candidate-to-job fit using the signals already captured in KARMSTHAN — skills, experience, compensation and pipeline data.</p>
+        </div>
+        <button type="button" class="primary-btn intelligence-action" onclick="loadHiringIntelligence(true)">Refresh intelligence</button>
+      </div>
+      <div class="intelligence-metrics">
+        <div class="intelligence-metric"><div class="metric-label">APPLICATIONS ANALYZED</div><strong id="intelligenceApplicationCount">0</strong><small>Connected candidate-job pairs</small></div>
+        <div class="intelligence-metric"><div class="metric-label">AVG READINESS</div><strong id="intelligenceAverageScore">—</strong><small>Across current applications</small></div>
+        <div class="intelligence-metric"><div class="metric-label">READY CANDIDATES</div><strong id="intelligenceReadyCount">0</strong><small>Readiness score 75+</small></div>
+        <div class="intelligence-metric"><div class="metric-label">NEEDS REVIEW</div><strong id="intelligenceReviewCount">0</strong><small>Readiness score below 60</small></div>
+      </div>
+      <div id="intelligenceList" class="intelligence-list">
+        <div class="intelligence-empty"><strong>No application intelligence yet.</strong><span>Create a job, add a candidate and connect them through Applications.</span></div>
+      </div>
+      <div class="intelligence-footnote">V1 uses transparent rule-based signals. This is the foundation for the future KARMSTHAN AI assessment layer; recommendations remain explainable rather than being presented as an opaque score.</div>
+    </div>
 
    <!-- CANDIDATE MANAGEMENT WORKSPACE -->
 
@@ -2726,12 +2780,58 @@ async function loadCurrentUser() {
       company.name +
       " · KARMSTHAN Hiring Intelligence";
 
+  loadHiringIntelligence(false);
+
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
 }
 
+
+async function loadHiringIntelligence(showErrors = false) {
+  const list = document.getElementById("intelligenceList");
+  if (!list) return;
+  try {
+    const { company } = await getCurrentCompany();
+    const [{ data: jobs, error: jobsError }, { data: candidates, error: candidatesError }, { data: applications, error: applicationsError }] = await Promise.all([
+      supabaseClient.from("jobs").select("id,title,jd_text,experience_min,experience_max,salary_min,salary_max,currency,status").eq("company_id", company.id),
+      supabaseClient.from("candidates").select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills").eq("company_id", company.id),
+      supabaseClient.from("applications").select("*").order("created_at", { ascending:false })
+    ]);
+    if (jobsError) throw jobsError;
+    if (candidatesError) throw candidatesError;
+    if (applicationsError) throw applicationsError;
+
+    const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
+    const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
+    const rows = (applications || []).filter(app => jobMap[app.job_id] && candidateMap[app.candidate_id]).map(app => {
+      const job=jobMap[app.job_id], candidate=candidateMap[app.candidate_id];
+      return {app,job,candidate,readiness:calculateHiringReadiness(job,candidate)};
+    }).sort((a,b)=>b.readiness.score-a.readiness.score);
+
+    const avg=rows.length?Math.round(rows.reduce((s,r)=>s+r.readiness.score,0)/rows.length):null;
+    document.getElementById("intelligenceApplicationCount").textContent=rows.length;
+    document.getElementById("intelligenceAverageScore").textContent=avg==null?"—":avg+"/100";
+    document.getElementById("intelligenceReadyCount").textContent=rows.filter(r=>r.readiness.score>=75).length;
+    document.getElementById("intelligenceReviewCount").textContent=rows.filter(r=>r.readiness.score<60).length;
+
+    if(!rows.length){
+      list.innerHTML='<div class="intelligence-empty"><strong>Your intelligence engine is ready.</strong><span>Once a candidate is connected to a job through Applications, KARMSTHAN will calculate an explainable readiness view here.</span></div>';
+      return;
+    }
+
+    list.innerHTML=rows.slice(0,6).map(row=>{
+      const name=row.candidate.full_name||"Unnamed candidate";
+      const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase()||"K";
+      const signal=row.readiness.reasons[0]||row.readiness.concerns[0]||"More candidate information is needed.";
+      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+'</span></div></div><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS</span></div></div>';
+    }).join("");
+  } catch(error) {
+    console.error("Hiring intelligence error:",error);
+    if(showErrors) alert(error.message||"Unable to refresh Hiring Intelligence.");
+  }
+}
 
   /* =========================================================
      LOGOUT
