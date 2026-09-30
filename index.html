@@ -2519,6 +2519,17 @@ function renderJobs(jobs) {
 
         </div>
 
+        <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+          <button
+            type="button"
+            class="primary-btn"
+            style="width:auto;padding:9px 16px;margin:0;"
+            onclick="event.stopPropagation(); openJobDetails('${job.id}')"
+          >
+            View Job Details →
+          </button>
+        </div>
+
       </div>
     `;
   });
