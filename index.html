@@ -1160,13 +1160,49 @@
     }
 
   
-    /* Compact karmsthan trademark lockup */
-    .karmsthan-brand { gap:0 !important; width:min(390px, 46vw); }
-    .karmsthan-logo-full { width:100%; max-width:390px; height:54px; overflow:hidden; display:flex; align-items:center; }
-    .karmsthan-logo-full svg { width:100%; height:auto; display:block; }
+    /* Compact SaaS header logo — intentionally separate from the full public-site lockup */
+    .karmsthan-brand {
+      gap: 9px !important;
+      width: auto !important;
+      flex: 0 0 auto;
+    }
+    .karmsthan-logo-full {
+      width: 34px !important;
+      height: 34px !important;
+      flex: 0 0 34px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .karmsthan-logo-full svg {
+      width: 34px;
+      height: 34px;
+      display: block;
+    }
+    .karmsthan-wordmark {
+      display: inline-flex;
+      align-items: flex-start;
+      color: #0b2f6b;
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -.55px;
+      white-space: nowrap;
+    }
+    .karmsthan-wordmark .tm {
+      font-size: 7px;
+      line-height: 1;
+      margin: 1px 0 0 2px;
+      letter-spacing: 0;
+    }
     @media (max-width:650px) {
-      .karmsthan-brand { width:225px; }
-      .karmsthan-logo-full { height:46px; }
+      .karmsthan-logo-full,
+      .karmsthan-logo-full svg {
+        width: 31px !important;
+        height: 31px !important;
+      }
+      .karmsthan-wordmark { font-size: 19px; }
     }
 
   
@@ -1576,24 +1612,18 @@ footer strong { color: #fff; }
 <body>
 
 <header>
-  <div class="brand karmsthan-brand">
-    <div class="karmsthan-logo-full" aria-label="karmsthan trademark logo" role="img">
-      <svg viewBox="0 0 1260 390" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <g>
-          <path d="M18 42H109V154L18 265Z" fill="#0b2f6b"/>
-          <path d="M126 249L194 190L319 352H214Z" fill="#0b2f6b"/>
-          <circle cx="174" cy="82" r="38" fill="#ff7417"/>
-          <path d="M20 365C19 294 52 245 100 208C153 167 215 137 281 85L257 135L316 105L286 168L279 143C215 195 153 239 103 287C64 324 39 350 20 365Z" fill="#ff7417"/>
-          <path d="M286 85L327 73L316 105Z" fill="#ff7417"/>
-        </g>
-        <text x="340" y="270" font-family="Arial, Helvetica, sans-serif" font-size="205" font-weight="700"
-          textLength="865" lengthAdjust="spacingAndGlyphs" fill="#0b2f6b">armsthan</text>
-        <text x="1208" y="158" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#0b2f6b">™</text>
-        <text x="342" y="350" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500"
-          letter-spacing="3.5" fill="#607089">RIGHT PEOPLE. BRIGHTER FUTURES.</text>
+  <div class="brand karmsthan-brand" aria-label="karmsthan">
+    <div class="karmsthan-logo-full" aria-hidden="true">
+      <svg viewBox="0 0 345 390" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 42H109V154L18 265Z" fill="#0b2f6b"/>
+        <path d="M126 249L194 190L319 352H214Z" fill="#0b2f6b"/>
+        <circle cx="174" cy="82" r="38" fill="#ff7417"/>
+        <path d="M20 365C19 294 52 245 100 208C153 167 215 137 281 85L257 135L316 105L286 168L279 143C215 195 153 239 103 287C64 324 39 350 20 365Z" fill="#ff7417"/>
+        <path d="M286 85L327 73L316 105Z" fill="#ff7417"/>
       </svg>
     </div>
-  </div></div>
+    <span class="karmsthan-wordmark">karmsthan<span class="tm">™</span></span>
+  </div>
 
   <div class="header-right">
     <div class="status">
