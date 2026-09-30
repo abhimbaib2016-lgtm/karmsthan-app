@@ -822,7 +822,7 @@
 
       <div class="stat-card">
         <div class="stat-label">CANDIDATES</div>
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="candidatesCount">0</div>
       </div>
 
       <div class="stat-card">
@@ -2472,13 +2472,12 @@ function renderJobs(jobs) {
       status.slice(1);
 
     html += `
-      <div style="
-        border:1px solid #e6e9ef;
-        border-radius:12px;
-        padding:18px;
-        margin-bottom:12px;
-        background:#fff;
-      ">
+      <div role="button" tabindex="0"
+        onclick="openJobDetails('${job.id}')"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openJobDetails('${job.id}')}"}
+        style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;margin-bottom:12px;background:#fff;cursor:pointer;transition:.15s;"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 22px rgba(30,41,90,.08)';"
+        onmouseout="this.style.transform='';this.style.boxShadow='';">
 
         <div style="
           display:flex;
@@ -2837,11 +2836,11 @@ async function createCandidate(event) {
         ?.value.trim();
 
     const currentLocation =
-      document.getElementById("candidateCurrentLocation")
+      document.getElementById("candidateLocation")
         ?.value.trim();
 
     const totalExperience =
-      document.getElementById("candidateTotalExperience")
+      document.getElementById("candidateExperience")
         ?.value;
 
     const currentCompany =
@@ -3067,13 +3066,12 @@ function renderCandidates(candidates) {
   candidates.forEach(candidate => {
 
     html += `
-      <div style="
-        border:1px solid #e6e9ef;
-        border-radius:12px;
-        padding:18px;
-        margin-bottom:12px;
-        background:#fff;
-      ">
+      <div role="button" tabindex="0"
+        onclick="openCandidateDetails('${candidate.id}')"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCandidateDetails('${candidate.id}')}"}
+        style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;margin-bottom:12px;background:#fff;cursor:pointer;transition:.15s;"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 22px rgba(30,41,90,.08)';"
+        onmouseout="this.style.transform='';this.style.boxShadow='';">
 
         <strong style="
           font-size:15px;
@@ -3193,6 +3191,67 @@ function showCreateCandidateForm() {
         .getElementById("candidateName")
         ?.focus();
 }
+
+function closeKarmsthanDetail(){document.getElementById("karmsthanDetailModal")?.remove();}
+
+function showKarmsthanDetail(html){
+  closeKarmsthanDetail();
+  const m=document.createElement("div");
+  m.id="karmsthanDetailModal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(15,23,42,.52);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;";
+  m.innerHTML=`<div style="width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:28px;box-shadow:0 25px 70px rgba(15,23,42,.25);">
+    <div style="display:flex;justify-content:flex-end"><button type="button" onclick="closeKarmsthanDetail()" style="width:36px;height:36px;border:1px solid #e2e6ee;border-radius:50%;background:#fff;font-size:20px;">×</button></div>${html}</div>`;
+  m.addEventListener("click",e=>{if(e.target===m)closeKarmsthanDetail()});
+  document.body.appendChild(m);
+}
+
+async function openJobDetails(jobId){
+  try{
+    const {company}=await getCurrentCompany();
+    const {data:job,error}=await supabaseClient.from("jobs").select("*").eq("id",jobId).eq("company_id",company.id).maybeSingle();
+    if(error)throw error;if(!job)throw new Error("Job could not be found.");
+    const exp=job.experience_min!=null||job.experience_max!=null?`${job.experience_min??"—"}–${job.experience_max??"—"} years`:"Not specified";
+    const sal=job.salary_min!=null||job.salary_max!=null?`${job.currency||"INR"} ${job.salary_min??"—"}–${job.salary_max??"—"}`:"Not specified";
+    showKarmsthanDetail(`<div class="role-badge">JOB DETAILS</div>
+      <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(job.title)}</h2>
+      <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(job.department||"Department not specified")} · ${escapeHtml(job.location||"Location not specified")}</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-label">STATUS</div><b>${escapeHtml((job.status||"draft").toUpperCase())}</b></div>
+        <div class="stat-card"><div class="stat-label">EXPERIENCE</div><b>${escapeHtml(exp)}</b></div>
+        <div class="stat-card"><div class="stat-label">SALARY</div><b>${escapeHtml(sal)}</b></div>
+      </div>
+      <h3 style="margin-bottom:8px;">Job description</h3>
+      <div style="white-space:pre-wrap;background:#fafbff;border:1px solid #e6e9ef;border-radius:12px;padding:18px;color:#475467;font-size:13px;line-height:1.7;">${escapeHtml(job.jd_text||"No job description provided.")}</div>
+      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closeKarmsthanDetail();openCandidateManagement()">Manage Candidates</button>`);
+  }catch(e){console.error(e);alert(e.message||"Unable to open job details.");}
+}
+
+async function openCandidateDetails(candidateId){
+  try{
+    const {companyId}=await getCurrentCandidateUser();
+    const {data:candidate,error}=await supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle();
+    if(error)throw error;if(!candidate)throw new Error("Candidate could not be found.");
+    const skills=Array.isArray(candidate.skills)?candidate.skills:[];
+    const skillHtml=skills.length?skills.map(s=>`<span style="display:inline-block;padding:6px 9px;margin:0 6px 6px 0;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:11px;font-weight:700;">${escapeHtml(s)}</span>`).join(""):"<span style='color:#98a2b3'>No skills added yet.</span>";
+    showKarmsthanDetail(`<div class="role-badge">CANDIDATE PROFILE</div>
+      <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(candidate.full_name)}</h2>
+      <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(candidate.current_title||"Title not specified")} · ${escapeHtml(candidate.current_company||"Company not specified")}</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-label">EXPERIENCE</div><b>${escapeHtml(candidate.total_experience!=null?candidate.total_experience+" years":"Not specified")}</b></div>
+        <div class="stat-card"><div class="stat-label">NOTICE</div><b>${escapeHtml(candidate.notice_period_days!=null?candidate.notice_period_days+" days":"Not specified")}</b></div>
+        <div class="stat-card"><div class="stat-label">EXPECTED SALARY</div><b>${escapeHtml(candidate.expected_salary!=null?"INR "+Number(candidate.expected_salary).toLocaleString("en-IN"):"Not specified")}</b></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
+        <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">CONTACT</div><div style="font-size:13px;line-height:1.8;">${escapeHtml(candidate.email||"Email not provided")}<br>${escapeHtml(candidate.phone||"Phone not provided")}<br>${escapeHtml(candidate.current_location||"Location not specified")}</div></div>
+        <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">SKILLS</div><div style="margin-top:7px;">${skillHtml}</div></div>
+      </div>
+      <div style="border-top:1px solid #e6e9ef;padding-top:20px;"><h3>KARMSTHAN intelligence</h3><p style="margin-top:7px;">This profile is ready for job matching, application tracking and Hiring Readiness analysis.</p></div>
+      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closeKarmsthanDetail();openJobManagement()">View Jobs</button>`);
+  }catch(e){console.error(e);alert(e.message||"Unable to open candidate profile.");}
+}
+
+function hideCreateCandidateForm(){const c=document.getElementById("createCandidateFormContainer");if(c)c.classList.add("hidden");const f=document.getElementById("createCandidateForm");if(f)f.reset();const m=document.getElementById("candidateMessage");if(m){m.className="message";m.textContent="";}}
+
 async function logout() {
 
     await supabaseClient.auth.signOut();
