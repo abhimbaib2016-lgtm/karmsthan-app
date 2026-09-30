@@ -1056,6 +1056,32 @@
     @media(max-width:850px){.intelligence-header{display:block}.intelligence-action{margin-top:16px}.intelligence-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:560px){.intelligence-metrics{grid-template-columns:1fr 1fr}.intelligence-row{grid-template-columns:1fr}.readiness-score{width:100%}.intelligence-candidate span{max-width:100%}}
 
+
+    /* RESUME QUICK EXTRACT */
+    .resume-extract-box{
+      margin:0 0 22px;
+      padding:18px;
+      border:1px solid #dbe6f2;
+      border-radius:15px;
+      background:linear-gradient(135deg,#f8fbff 0%,#fff8f3 100%);
+    }
+    .resume-extract-box .extract-head{
+      display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:12px;
+    }
+    .resume-extract-box .extract-kicker{
+      color:#ff7417;font-size:9px;font-weight:900;letter-spacing:.12em;margin-bottom:5px;
+    }
+    .resume-extract-box h4{color:#0b2f6b;font-size:15px;margin-bottom:5px}
+    .resume-extract-box p{color:#718096;font-size:11px;line-height:1.6}
+    #resumeTextInput{
+      width:100%;min-height:145px;resize:vertical;border:1px solid #d5e0ec;border-radius:11px;
+      padding:12px;font-size:12px;line-height:1.6;outline:none;background:#fff;color:#344054;
+    }
+    #resumeTextInput:focus{border-color:#ffb183;box-shadow:0 0 0 3px rgba(255,116,23,.08)}
+    .extract-actions{display:flex;gap:9px;align-items:center;margin-top:10px;flex-wrap:wrap}
+    .extract-actions button{width:auto!important;padding:9px 15px!important}
+    .extract-hint{color:#8a97a9;font-size:10px}
+
 </style>
 </head>
 
@@ -1582,6 +1608,23 @@
 
 
     <form id="createCandidateForm">
+
+      <div class="resume-extract-box">
+        <div class="extract-head">
+          <div>
+            <div class="extract-kicker">RESUME INTELLIGENCE · QUICK EXTRACT</div>
+            <h4>Start with the resume</h4>
+            <p>Paste resume text and KARMSTHAN will extract common profile signals into the candidate form. You can review and edit everything before saving.</p>
+          </div>
+        </div>
+        <textarea id="resumeTextInput" placeholder="Paste resume text here...&#10;&#10;Example: Senior Java Developer | Bengaluru | 7 years | Spring Boot, Java, AWS | notice period 30 days"></textarea>
+        <div class="extract-actions">
+          <button type="button" class="primary-btn" onclick="extractResumeProfile()">Extract profile</button>
+          <button type="button" class="secondary-btn" onclick="document.getElementById('resumeTextInput').value='';" style="width:auto;padding:9px 15px;">Clear</button>
+          <span class="extract-hint">Heuristic extraction for V1 · human review required</span>
+        </div>
+        <div class="message" id="resumeExtractMessage"></div>
+      </div>
 
       <div class="form-grid">
 
@@ -3563,6 +3606,82 @@ async function openCandidateManagement() {
 
 
 /* Create candidate */
+
+function extractResumeProfile() {
+  const text = document.getElementById("resumeTextInput")?.value.trim() || "";
+  const message = document.getElementById("resumeExtractMessage");
+  if (!text) {
+    if(message){message.textContent="Paste resume text first.";message.className="message show error";}
+    return;
+  }
+
+  const lower = text.toLowerCase();
+
+  const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || "";
+  const phone = text.match(/(?:\+91[\s-]?)?[6-9]\d{9}\b/)?.[0] || "";
+  const expMatch = text.match(/(?:total\s+)?experience\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*(?:\+\s*)?(?:years?|yrs?)/i)
+    || text.match(/(\d+(?:\.\d+)?)\s*\+?\s*(?:years?|yrs?)\s+(?:of\s+)?experience/i);
+  const totalExperience = expMatch?.[1] || "";
+
+  const noticeMatch = text.match(/(?:notice\s*period|notice)\s*[:\-]?\s*(\d+)\s*(?:days?|day)/i);
+  const notice = noticeMatch?.[1] || "";
+
+  const salaryMatch = text.match(/(?:expected\s*(?:salary|ctc)|expected\s*package)\s*[:\-]?\s*(?:₹|rs\.?\s*)?(\d+(?:\.\d+)?)\s*(lpa|lakhs?|cr|crore)?/i);
+  let salary = "";
+  if(salaryMatch){
+    const value=Number(salaryMatch[1]);
+    const unit=(salaryMatch[2]||"").toLowerCase();
+    salary=unit.includes("lpa")||unit.includes("lakh") ? Math.round(value*100000) : unit.includes("cr")||unit.includes("crore") ? Math.round(value*10000000) : Math.round(value);
+  }
+
+  const titlePatterns=[
+    "chief technology officer","vice president","engineering manager","engineering lead","tech lead",
+    "technical lead","project manager","product manager","scrum master","data scientist","data engineer",
+    "data analyst","business analyst","devops engineer","cloud architect","solution architect",
+    "software engineer","software developer","full stack developer","frontend developer","backend developer",
+    "java developer","python developer","qa engineer","test engineer","automation engineer","recruiter",
+    "talent acquisition","hr manager","designer","consultant"
+  ];
+  const foundTitle=titlePatterns.find(t=>lower.includes(t));
+  
+  const skillDictionary=[
+    "Java","Spring Boot","Python","Django","Flask","JavaScript","TypeScript","React","Angular","Node.js",
+    "SQL","PostgreSQL","MySQL","MongoDB","AWS","Azure","GCP","Docker","Kubernetes","Jenkins","GitLab",
+    "GitHub","Terraform","Selenium","Cypress","Playwright","API Testing","REST API","Postman","JIRA",
+    "Power BI","Tableau","Snowflake","Databricks","Spark","Kafka","Airflow","C++","C#",".NET","AEM",
+    "SAP","Salesforce","Oracle","Linux","DevOps","Machine Learning","Artificial Intelligence","Excel",
+    "Recruitment","Talent Acquisition","Sourcing","Stakeholder Management","HR Analytics"
+  ];
+  const skills=skillDictionary.filter(skill=>lower.includes(skill.toLowerCase()));
+
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const nameCandidate=lines.find(line=>{
+    const words=line.split(/\s+/);
+    return words.length>=2 && words.length<=5 &&
+      /^[A-Za-z][A-Za-z .'-]+$/.test(line) &&
+      !/resume|curriculum|profile|email|phone|mobile|experience|skills|education|summary|objective/i.test(line);
+  }) || "";
+
+  const locationMatch=text.match(/(?:location|city|based in|address)\s*[:\-]?\s*([A-Za-z .,'-]{3,40})/i);
+  const location=locationMatch?.[1]?.trim().replace(/[,.]$/,"") || "";
+
+  const set=(id,value)=>{const el=document.getElementById(id);if(el&&value)el.value=value;};
+  set("candidateName",nameCandidate);
+  set("candidateEmail",email);
+  set("candidatePhone",phone);
+  set("candidateExperience",totalExperience);
+  set("candidateNoticePeriod",notice);
+  set("candidateExpectedSalary",salary);
+  set("candidateCurrentTitle",foundTitle ? foundTitle.replace(/\b\w/g,m=>m.toUpperCase()) : "");
+  set("candidateLocation",location);
+  if(skills.length) set("candidateSkills",skills.join(", "));
+
+  if(message){
+    const populated=[nameCandidate,email,phone,totalExperience,notice,salary,foundTitle,location,skills.length].filter(Boolean).length;
+    message.textContent="Extracted "+populated+" profile signals. Please review the fields before saving.";
+    message.className="message show success";
+  }
+}
 
 async function createCandidate(event) {
 
