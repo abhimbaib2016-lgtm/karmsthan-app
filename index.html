@@ -2253,6 +2253,13 @@
 
   <!-- JOB LIST -->
 
+  <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;">
+    <input id="jobSearchInput" type="search" placeholder="Search title, location, department..." aria-label="Search jobs" oninput="filterJobDirectory()" style="width:min(320px,100%);height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 12px;outline:none;font-size:12px;background:#fff;">
+    <select id="jobStatusFilter" aria-label="Filter jobs by status" onchange="filterJobDirectory()" style="height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 10px;font-size:12px;background:#fff;">
+      <option value="">All statuses</option><option value="open">Open</option><option value="draft">Draft</option><option value="closed">Closed</option>
+    </select>
+  </div>
+
   <div
     id="jobListContainer"
     style="margin-top:30px;"
@@ -2382,6 +2389,14 @@
     </div>
 
     <div id="applicationPipelineSummary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;"></div>
+
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:15px;">
+      <input id="applicationSearchInput" type="search" placeholder="Search candidate or job..." aria-label="Search applications" oninput="filterApplicationPipeline()" style="width:min(320px,100%);height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 12px;outline:none;font-size:12px;background:#fff;">
+      <select id="applicationStatusFilter" aria-label="Filter applications by status" onchange="filterApplicationPipeline()" style="height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 10px;font-size:12px;background:#fff;">
+        <option value="">All stages</option><option value="submitted">Submitted</option><option value="screening">Screening</option><option value="applied">Applied</option><option value="shortlisted">Shortlisted</option><option value="interview">Interview</option><option value="selected">Selected</option><option value="offer">Offer</option><option value="accepted">Accepted</option><option value="joined">Joined</option><option value="rejected">Rejected</option>
+      </select>
+      <button type="button" class="secondary-btn" style="width:auto;padding:9px 13px;font-size:11px;" onclick="clearApplicationPipelineFilter()">Clear filters</button>
+    </div>
 
     <div id="applicationListContainer" style="border:1px solid #e6e9ef;border-radius:12px;padding:20px;background:#fff;">
       <div id="applicationListEmpty" style="color:#7a8499;font-size:13px;">
@@ -2803,6 +2818,8 @@ async function loadHiringIntelligence(showErrors = false) {
     }
     const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
     const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
+    window.karmsthanApplicationJobMap = jobMap;
+    window.karmsthanApplicationCandidateMap = candidateMap;
     const rows = (applications || []).filter(app => jobMap[app.job_id] && candidateMap[app.candidate_id]).map(app => {
       const job=jobMap[app.job_id], candidate=candidateMap[app.candidate_id];
       return {app,job,candidate,readiness:calculateHiringReadiness(job,candidate)};
@@ -3180,10 +3197,12 @@ async function loadJobs() {
       return;
     }
 
-    updateActiveJobsCount(
-      jobs.filter(job => job.status === "open").length
-    );
-
+    window.karmsthanJobDirectory = jobs || [];
+    updateActiveJobsCount(jobs.filter(job => job.status === "open").length);
+    const jobSearch = document.getElementById("jobSearchInput");
+    const jobStatus = document.getElementById("jobStatusFilter");
+    if (jobSearch) jobSearch.value = "";
+    if (jobStatus) jobStatus.value = "";
     renderJobs(jobs);
 
   } catch (error) {
@@ -3300,6 +3319,22 @@ function renderJobs(jobs) {
   container.innerHTML = html;
 }
 
+
+function filterJobDirectory() {
+  const jobs = window.karmsthanJobDirectory || [];
+  const query = (document.getElementById("jobSearchInput")?.value || "").trim().toLowerCase();
+  const status = document.getElementById("jobStatusFilter")?.value || "";
+  const filtered = jobs.filter(job => {
+    const text = [job.title, job.location, job.department, job.employment_type, job.jd_text].filter(Boolean).join(" ").toLowerCase();
+    return (!query || text.includes(query)) && (!status || String(job.status || "draft").toLowerCase() === status);
+  });
+  const empty = document.getElementById("jobListEmpty");
+  if (empty) {
+    empty.textContent = !jobs.length ? "No jobs created yet. Create your first hiring requirement." : (!filtered.length ? "No jobs match your current search or filter." : "");
+    empty.classList.toggle("hidden", Boolean(filtered.length));
+  }
+  renderJobs(filtered);
+}
 
 /* Save new job */
 
@@ -4367,6 +4402,7 @@ async function loadApplications() {
       jobMap[app.job_id] && candidateMap[app.candidate_id]
     );
 
+    window.karmsthanApplicationDirectory = companyApplications;
     updateApplicationsCount(companyApplications.length);
     renderApplicationPipeline(companyApplications);
 
@@ -4389,6 +4425,36 @@ async function loadApplications() {
     }
     updateApplicationsCount(0);
   }
+}
+
+function filterApplicationPipeline() {
+  const applications = window.karmsthanApplicationDirectory || [];
+  const query = (document.getElementById("applicationSearchInput")?.value || "").trim().toLowerCase();
+  const status = document.getElementById("applicationStatusFilter")?.value || "";
+  const jobs = window.karmsthanApplicationJobMap || {};
+  const candidates = window.karmsthanApplicationCandidateMap || {};
+  const filtered = applications.filter(app => {
+    const job = jobs[app.job_id] || {};
+    const candidate = candidates[app.candidate_id] || {};
+    const text = [job.title,candidate.full_name,candidate.current_title,candidate.current_company].filter(Boolean).join(" ").toLowerCase();
+    return (!query || text.includes(query)) && (!status || app.status === status);
+  });
+  const empty = document.getElementById("applicationListEmpty");
+  if (empty) {
+    empty.textContent = !applications.length ? "No applications yet. Create the first job-candidate application." : (!filtered.length ? "No applications match your current search or filter." : "");
+    empty.classList.toggle("hidden", Boolean(filtered.length));
+  }
+  const total = document.getElementById("applicationTotalCount");
+  if (total) total.textContent = (query || status) ? filtered.length + " of " + applications.length + " shown" : applications.length + " total";
+  renderApplications(filtered, jobs, candidates);
+}
+
+function clearApplicationPipelineFilter() {
+  const search = document.getElementById("applicationSearchInput");
+  const status = document.getElementById("applicationStatusFilter");
+  if (search) search.value = "";
+  if (status) status.value = "";
+  filterApplicationPipeline();
 }
 
 function updateApplicationsCount(count) {
