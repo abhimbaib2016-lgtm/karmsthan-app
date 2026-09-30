@@ -2709,68 +2709,32 @@ const { data, error } =
      ========================================================= */
 
 async function loadCurrentUser() {
-
-  const {
-    data,
-    error
-  } = await supabaseClient.auth.getUser();
-
-  if (error || !data.user) {
-    return;
-  }
+  const { data, error } = await supabaseClient.auth.getUser();
+  if (error || !data.user) return;
 
   const user = data.user;
-
   const metadata = user.user_metadata || {};
+  const name = metadata.full_name || user.email || "KARMSTHAN User";
+  const role = metadata.role || selectedRole || "User";
 
-  const name =
-    metadata.full_name ||
-    user.email ||
-    "KARMSTHAN User";
-
-  const role =
-    metadata.role ||
-    selectedRole ||
-    "User";
-
-  document.getElementById("welcomeTitle").textContent =
-    "Welcome, " + name;
-
+  document.getElementById("welcomeTitle").textContent = "Welcome, " + name;
   document.getElementById("welcomeSubtitle").textContent =
     role + " workspace · KARMSTHAN Hiring Intelligence";
 
-  /* Show authenticated dashboard */
-  document
-    .getElementById("landingView")
-    .classList.add("hidden");
+  document.getElementById("landingView").classList.add("hidden");
+  document.getElementById("dashboardView").classList.remove("hidden");
 
-  document
-    .getElementById("dashboardView")
-    .classList.remove("hidden");
+  const companySetup = document.getElementById("companySetupCard");
+  const dashboardContent = document.getElementById("dashboardContent");
 
-  /*
-   * Only Employers need a company workspace
-   * at this stage.
-   */
-  if (role !== "Employer") {
-
-    document
-      .getElementById("companySetupCard")
-      ?.classList.add("hidden");
-
-    document
-      .getElementById("dashboardContent")
-      ?.classList.remove("hidden");
-
+  // Candidates use the public/profile flow; recruiter and employer use a company workspace.
+  if (role === "Candidate") {
+    companySetup?.classList.add("hidden");
+    dashboardContent?.classList.remove("hidden");
     return;
   }
 
-  /* Check whether Employer already belongs to a company */
-
-  const {
-    data: membership,
-    error: membershipError
-  } = await supabaseClient
+  const { data: membership, error: membershipError } = await supabaseClient
     .from("company_members")
     .select("company_id, member_role")
     .eq("user_id", user.id)
@@ -2778,85 +2742,46 @@ async function loadCurrentUser() {
     .maybeSingle();
 
   if (membershipError) {
-
-    console.error(
-      "Company membership lookup failed:",
-      membershipError
-    );
-
-    showCompanyMessage(
-      "Unable to load your company workspace. Please refresh and try again.",
-      true
-    );
-
+    console.error("Company membership lookup failed:", membershipError);
+    showCompanyMessage("Unable to load your company workspace. Please refresh and try again.", true);
     return;
   }
-
-  /* No company → show Company Setup */
 
   if (!membership) {
-
-    document
-      .getElementById("companySetupCard")
-      ?.classList.remove("hidden");
-
-    document
-      .getElementById("dashboardContent")
-      ?.classList.add("hidden");
-
+    if (role === "Employer") {
+      companySetup?.classList.remove("hidden");
+      dashboardContent?.classList.add("hidden");
+    } else {
+      companySetup?.classList.add("hidden");
+      dashboardContent?.classList.remove("hidden");
+      const intelligence = document.getElementById("hiringIntelligencePanel");
+      if (intelligence) {
+        intelligence.innerHTML = '<div class="intelligence-empty"><strong>Recruiter access is not connected yet.</strong><span>Ask your employer or workspace administrator to add this account to a KARMSTHAN company workspace.</span></div>';
+      }
+    }
     return;
   }
 
-  /* Company exists → load company */
-
-  const {
-    data: company,
-    error: companyError
-  } = await supabaseClient
+  const { data: company, error: companyError } = await supabaseClient
     .from("companies")
     .select("*")
     .eq("id", membership.company_id)
     .maybeSingle();
 
   if (companyError || !company) {
-
-    console.error(
-      "Company lookup failed:",
-      companyError
-    );
-
-    showCompanyMessage(
-      "Your company workspace could not be loaded.",
-      true
-    );
-
+    console.error("Company lookup failed:", companyError);
+    showCompanyMessage("Your company workspace could not be loaded.", true);
     return;
   }
 
-  /* Store company context */
-
   window.karmsthanCompany = company;
+  window.karmsthanCompanyMembership = membership;
 
-  window.karmsthanCompanyMembership =
-    membership;
+  companySetup?.classList.add("hidden");
+  dashboardContent?.classList.remove("hidden");
 
-  /* Company exists → show dashboard */
-
-  document
-    .getElementById("companySetupCard")
-    ?.classList.add("hidden");
-
-  document
-    .getElementById("dashboardContent")
-    ?.classList.remove("hidden");
-
-  document
-    .getElementById("welcomeSubtitle")
-    .textContent =
-      role +
-      " workspace · " +
-      company.name +
-      " · KARMSTHAN Hiring Intelligence";
+  document.getElementById("welcomeSubtitle").textContent =
+    role + " workspace · " + company.name + " · KARMSTHAN Hiring Intelligence";
 
   await Promise.all([
     loadJobs(),
@@ -2865,12 +2790,8 @@ async function loadCurrentUser() {
     loadHiringIntelligence(false)
   ]);
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
 
 async function loadHiringIntelligence(showErrors = false) {
   const list = document.getElementById("intelligenceList");
