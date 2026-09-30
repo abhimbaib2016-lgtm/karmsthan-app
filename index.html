@@ -2489,14 +2489,22 @@
   const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_GMhbifhvzd8nrELaKcofDQ_GREm1xhU";
 
-  const { createClient } =
-    window.supabase;
+  // Supabase must never be allowed to block the landing page.
+  // The role picker remains functional even if the CDN is unavailable.
+  let supabaseClient = null;
 
-  const supabaseClient =
-    createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
+  try {
+    if (window.supabase && typeof window.supabase.createClient === "function") {
+      supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
+    } else {
+      console.warn("KARMSTHAN: Supabase browser SDK is not available.");
+    }
+  } catch (error) {
+    console.error("KARMSTHAN: Supabase initialization failed.", error);
+  }
 
 
   /* =========================================================
@@ -4830,6 +4838,11 @@ async function logout() {
 
   async function checkSession() {
 
+    if (!supabaseClient) {
+      console.warn("KARMSTHAN: Auth unavailable; landing page remains usable.");
+      return;
+    }
+
     const {
       data
     } =
@@ -4849,20 +4862,22 @@ async function logout() {
      AUTH STATE LISTENER
      ========================================================= */
 
-  supabaseClient.auth.onAuthStateChange(
-    async (event, session) => {
+  if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
 
-      if (
-        event === "SIGNED_IN" &&
-        session
-      ) {
+        if (
+          event === "SIGNED_IN" &&
+          session
+        ) {
 
-        await loadCurrentUser();
+          await loadCurrentUser();
+
+        }
 
       }
-
-    }
-  );
+    );
+  }
 
 
   /* =========================================================
