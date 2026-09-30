@@ -1,0 +1,447 @@
+name: Karmsthan Brand Refresh
+
+on:
+  push:
+    branches:
+      - mvp-development
+
+permissions:
+  contents: write
+
+jobs:
+  apply-brand-refresh:
+    if: "!contains(github.event.head_commit.message, '[brand-refresh]')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply lowercase brand and visual system
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("index.html")
+          html = path.read_text(encoding="utf-8")
+
+          replacements = {
+              "KARMSTHAN": "karmsthan",
+              "Karmsthan": "karmsthan",
+          }
+          for old, new in replacements.items():
+              html = html.replace(old, new)
+
+          theme = r"""
+          /* =========================================================
+             karmsthan distinctive product system
+             Visual refresh — preserve application behaviour
+             ========================================================= */
+          :root {
+            --ks-ink: #111827;
+            --ks-ink-soft: #344054;
+            --ks-indigo: #635bff;
+            --ks-violet: #8b5cf6;
+            --ks-orange: #ff7a00;
+            --ks-lavender: #f4f1ff;
+            --ks-paper: #fafaf8;
+            --ks-line: #e7e5ee;
+            --ks-muted: #667085;
+            --ks-shadow: 0 18px 55px rgba(17, 24, 39, .08);
+          }
+
+          html { scroll-behavior: smooth; }
+
+          body {
+            background:
+              radial-gradient(circle at 88% 7%, rgba(99,91,255,.12), transparent 300px),
+              radial-gradient(circle at 7% 24%, rgba(255,122,0,.07), transparent 260px),
+              linear-gradient(180deg, #fafaf8 0%, #f7f7fb 100%);
+            color: var(--ks-ink);
+          }
+
+          header {
+            height: 76px;
+            padding: 0 32px;
+            background: rgba(250,250,248,.88);
+            border-bottom: 1px solid rgba(231,229,238,.9);
+            box-shadow: 0 8px 30px rgba(17,24,39,.045);
+            backdrop-filter: blur(18px);
+          }
+
+          .brand { gap: 11px; }
+          .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: linear-gradient(145deg, var(--ks-ink), #27234f);
+            border: 1px solid rgba(255,122,0,.45);
+            box-shadow: 0 9px 22px rgba(17,24,39,.16);
+          }
+          .brand-mark::before {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--ks-orange);
+            top: 7px;
+            right: 7px;
+            box-shadow: 0 0 0 5px rgba(255,122,0,.10);
+          }
+          .brand-mark::after {
+            width: 16px;
+            height: 4px;
+            right: 3px;
+            top: 25px;
+            background: var(--ks-orange);
+            transform: rotate(-31deg);
+          }
+
+          .brand-name {
+            color: var(--ks-ink);
+            letter-spacing: -.45px;
+            font-size: 22px;
+            text-transform: lowercase;
+          }
+
+          .brand-subtitle {
+            color: var(--ks-muted);
+            letter-spacing: .01em;
+            text-transform: lowercase;
+          }
+
+          .status-dot {
+            background: var(--ks-orange);
+            box-shadow: 0 0 0 5px rgba(255,122,0,.10);
+          }
+
+          main { padding-top: 42px; }
+
+          .hero {
+            max-width: 940px;
+            padding: 30px 18px 8px;
+          }
+
+          .eyebrow {
+            color: var(--ks-indigo);
+            background: var(--ks-lavender);
+            border: 1px solid rgba(99,91,255,.14);
+            padding: 8px 14px;
+            text-transform: lowercase;
+            letter-spacing: .03em;
+          }
+
+          .hero h1 {
+            color: var(--ks-ink);
+            font-size: clamp(42px, 7vw, 72px);
+            letter-spacing: -4px;
+            line-height: .98;
+          }
+
+          .hero h1 span {
+            background: linear-gradient(100deg, var(--ks-indigo), var(--ks-violet) 55%, var(--ks-orange));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+          }
+
+          .hero p {
+            color: var(--ks-muted);
+            max-width: 730px;
+          }
+
+          .auth-section { max-width: 1040px; }
+
+          .section-heading h2 {
+            color: var(--ks-ink);
+            letter-spacing: -.5px;
+          }
+
+          .section-heading p { color: var(--ks-muted); }
+
+          .role-grid { gap: 16px; }
+
+          .role-card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,.82);
+            border: 1px solid var(--ks-line);
+            border-radius: 22px;
+            padding: 26px;
+            box-shadow: 0 8px 30px rgba(17,24,39,.035);
+          }
+
+          .role-card::after {
+            content: "";
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            right: -55px;
+            top: -55px;
+            background: rgba(99,91,255,.08);
+          }
+
+          .role-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99,91,255,.30);
+            box-shadow: var(--ks-shadow);
+          }
+
+          .role-card.selected {
+            border-color: var(--ks-indigo);
+            box-shadow: 0 0 0 3px rgba(99,91,255,.10), var(--ks-shadow);
+          }
+
+          .role-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            background: linear-gradient(145deg, var(--ks-lavender), #fff);
+            border: 1px solid rgba(99,91,255,.13);
+            color: var(--ks-indigo);
+          }
+
+          .role-card h3 { color: var(--ks-ink); }
+          .role-card p { color: var(--ks-muted); }
+          .role-action {
+            color: var(--ks-indigo);
+            text-transform: lowercase;
+          }
+
+          .auth-panel {
+            border: 1px solid var(--ks-line);
+            border-radius: 22px;
+            background: rgba(255,255,255,.92);
+            box-shadow: var(--ks-shadow);
+          }
+
+          .auth-panel h3 { color: var(--ks-ink); }
+          .auth-description { color: var(--ks-muted); }
+
+          .role-badge {
+            background: var(--ks-lavender);
+            color: var(--ks-indigo);
+            border: 1px solid rgba(99,91,255,.14);
+            text-transform: lowercase;
+          }
+
+          .tabs {
+            background: #f2f1f7;
+            border-radius: 12px;
+          }
+
+          .tab.active {
+            color: var(--ks-indigo);
+            border: 1px solid rgba(99,91,255,.12);
+          }
+
+          .form-group input:focus {
+            border-color: var(--ks-indigo);
+            box-shadow: 0 0 0 4px rgba(99,91,255,.09);
+          }
+
+          .primary-btn {
+            background: linear-gradient(100deg, var(--ks-indigo), var(--ks-violet));
+            border-radius: 12px;
+            box-shadow: 0 10px 24px rgba(99,91,255,.20);
+          }
+
+          .primary-btn:hover {
+            background: linear-gradient(100deg, #5149e8, var(--ks-violet));
+          }
+
+          .dashboard { max-width: 1160px; }
+
+          .dashboard-top {
+            padding: 28px 0 18px;
+            margin-bottom: 0;
+          }
+
+          .dashboard-title h1 {
+            color: var(--ks-ink);
+            font-size: clamp(30px, 4vw, 43px);
+            letter-spacing: -1.8px;
+          }
+
+          .dashboard-title p { color: var(--ks-muted); }
+
+          .logout-btn {
+            border: 1px solid var(--ks-line);
+            background: rgba(255,255,255,.8);
+            color: var(--ks-ink-soft);
+            border-radius: 11px;
+          }
+
+          .logout-btn:hover {
+            border-color: var(--ks-indigo);
+            color: var(--ks-indigo);
+          }
+
+          .dashboard-grid { gap: 16px; }
+
+          .stat-card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,.86);
+            border: 1px solid var(--ks-line);
+            border-radius: 18px;
+            box-shadow: 0 8px 26px rgba(17,24,39,.045);
+          }
+
+          .stat-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--ks-indigo), var(--ks-orange));
+          }
+
+          .stat-label {
+            color: var(--ks-indigo);
+            letter-spacing: .09em;
+          }
+
+          .stat-value { color: var(--ks-ink); }
+
+          .dashboard-card {
+            background: rgba(255,255,255,.90);
+            border: 1px solid var(--ks-line);
+            border-radius: 22px;
+            box-shadow: var(--ks-shadow);
+          }
+
+          .dashboard-card h3 { color: var(--ks-ink); }
+          .dashboard-card p { color: var(--ks-muted); }
+
+          .coming-grid { gap: 17px; }
+
+          .coming-item {
+            background: linear-gradient(150deg, #fff 0%, #faf9ff 100%);
+            border: 1px solid var(--ks-line);
+            border-radius: 20px;
+            box-shadow: 0 8px 28px rgba(17,24,39,.04);
+          }
+
+          .coming-item:hover {
+            border-color: rgba(99,91,255,.28);
+            box-shadow: 0 18px 44px rgba(17,24,39,.09);
+          }
+
+          .coming-icon {
+            background: var(--ks-lavender);
+            border: 1px solid rgba(99,91,255,.13);
+            color: var(--ks-indigo);
+          }
+
+          .coming-item strong { color: var(--ks-ink); }
+          .coming-item span { color: var(--ks-muted); }
+
+          .workspace-kicker {
+            color: var(--ks-indigo);
+            background: var(--ks-lavender);
+            border-color: rgba(99,91,255,.14);
+          }
+
+          .workspace-kicker::before {
+            background: var(--ks-orange);
+            box-shadow: 0 0 0 4px rgba(255,122,0,.10);
+          }
+
+          .workspace-nav button:hover {
+            color: var(--ks-indigo);
+            background: var(--ks-lavender);
+          }
+
+          .workspace-nav button.active {
+            color: var(--ks-indigo);
+            border-color: rgba(99,91,255,.16);
+            background: #fff;
+          }
+
+          .coming-status {
+            color: var(--ks-indigo) !important;
+          }
+
+          footer {
+            background: var(--ks-ink);
+            color: #98a2b3;
+          }
+
+          footer strong { color: #fff; }
+
+          /* Intelligence emphasis */
+          #hiringIntelligencePanel,
+          [id*="HiringIntelligence"],
+          [id*="hiringIntelligence"] {
+            position: relative;
+          }
+
+          #hiringIntelligencePanel::before {
+            content: "intelligence";
+            display: inline-flex;
+            margin-bottom: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--ks-lavender);
+            color: var(--ks-indigo);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: lowercase;
+          }
+
+          /* Make the product feel lowercase without altering functional IDs. */
+          .brand-name,
+          .brand-subtitle,
+          .workspace-kicker,
+          .role-action,
+          .role-badge,
+          .stat-label,
+          .coming-status {
+            text-transform: lowercase;
+          }
+
+          @media (max-width: 800px) {
+            header {
+              height: 68px;
+              padding: 0 16px;
+            }
+
+            .brand-mark {
+              width: 38px;
+              height: 38px;
+              border-radius: 12px;
+            }
+
+            .brand-name { font-size: 19px; }
+            .brand-subtitle { font-size: 9px; }
+            main { padding: 28px 16px 55px; }
+            .hero { padding: 24px 8px 4px; }
+            .hero h1 {
+              font-size: clamp(38px, 12vw, 52px);
+              letter-spacing: -2.8px;
+            }
+
+            .role-card { padding: 22px; }
+            .auth-panel { padding: 24px 20px; border-radius: 18px; }
+            .dashboard-top { padding-top: 18px; }
+            .dashboard-title h1 { font-size: 30px; }
+            .dashboard-card { padding: 20px; }
+          }
+          """
+
+          marker = "</style>"
+          if "karmsthan distinctive product system" not in html:
+              html = html.replace(marker, theme + "\n  " + marker, 1)
+
+          path.write_text(html, encoding="utf-8")
+      - name: Commit refresh
+        run: |
+          git config user.name "karmsthan brand refresh"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "feat: refresh karmsthan product visual system [brand-refresh]"
+          git push
