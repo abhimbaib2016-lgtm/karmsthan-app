@@ -2875,7 +2875,7 @@ async function loadHiringIntelligence(showErrors = false) {
     const [{ data: jobs, error: jobsError }, { data: candidates, error: candidatesError }, { data: applications, error: applicationsError }] = await Promise.all([
       supabaseClient.from("jobs").select("id,title,jd_text,experience_min,experience_max,salary_min,salary_max,currency,status").eq("company_id", company.id),
       supabaseClient.from("candidates").select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills").eq("company_id", company.id),
-      supabaseClient.from("applications").select("*").order("created_at", { ascending:false })
+      supabaseClient.from("applications").select("id,job_id,candidate_id,status,source,created_at").order("created_at", { ascending:false })
     ]);
     if (jobsError) throw jobsError;
     if (candidatesError) throw candidatesError;
@@ -4459,7 +4459,7 @@ async function loadApplications() {
 
     const { data: applications, error } = await supabaseClient
       .from("applications")
-      .select("*")
+      .select("id,job_id,candidate_id,status,source,created_at,updated_at,notes")
       .order("created_at", { ascending: false });
     if (error) throw error;
 
