@@ -2895,10 +2895,6 @@ async function loadHiringIntelligence(showErrors = false) {
       if (applicationsError) throw applicationsError;
       applications = data || [];
     }
-    if (jobsError) throw jobsError;
-    if (candidatesError) throw candidatesError;
-    if (applicationsError) throw applicationsError;
-
     const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
     const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
     const rows = (applications || []).filter(app => jobMap[app.job_id] && candidateMap[app.candidate_id]).map(app => {
@@ -4708,6 +4704,30 @@ function renderApplications(applications, jobMap, candidateMap) {
 
 async function updateApplicationStatus(applicationId, status) {
   try {
+    if (!APPLICATION_STATUSES.includes(status)) {
+      throw new Error("Invalid application status.");
+    }
+
+    const { companyId } = await getApplicationContext();
+    const { data: application, error: lookupError } = await supabaseClient
+      .from("applications")
+      .select("id,job_id")
+      .eq("id", applicationId)
+      .maybeSingle();
+
+    if (lookupError) throw lookupError;
+    if (!application) throw new Error("Application could not be found.");
+
+    const { data: job, error: jobError } = await supabaseClient
+      .from("jobs")
+      .select("id")
+      .eq("id", application.job_id)
+      .eq("company_id", companyId)
+      .maybeSingle();
+
+    if (jobError) throw jobError;
+    if (!job) throw new Error("This application is outside your company workspace.");
+
     const { error } = await supabaseClient
       .from("applications")
       .update({ status, updated_at: new Date().toISOString() })
