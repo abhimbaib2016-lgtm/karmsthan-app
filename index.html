@@ -174,6 +174,14 @@
       gap: 18px;
     }
 
+    .auth-section,
+    .role-grid,
+    .role-card-link {
+      position: relative;
+      z-index: 30;
+      pointer-events: auto !important;
+    }
+
     .role-card {
       background: #fff;
       border: 1px solid #e2e6ee;
@@ -192,6 +200,23 @@
       border-color: #3949ab;
       box-shadow: 0 0 0 3px rgba(57, 73, 171, .10);
     }
+    /* Native navigation fallback for role selection.
+       Keeps the role picker usable even if browser JavaScript is blocked. */
+    .role-card-link {
+      display: block;
+      width: 100%;
+      color: inherit;
+      text-decoration: none;
+      font: inherit;
+      text-align: left;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .auth-panel:target {
+      display: block !important;
+    }
+
 
     .role-icon {
       width: 48px;
@@ -380,23 +405,6 @@
       color: #7a8499;
       font-size: 13px;
     }
-
-    .workspace-identity {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 10px;
-      padding: 6px 10px;
-      border: 1px solid #dfe7f1;
-      border-radius: 999px;
-      background: #fff;
-      color: #607089;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .02em;
-      box-shadow: 0 4px 12px rgba(18,61,104,.04);
-    }
-    .workspace-identity span:first-child { color: #0b2f6b; }
 
     .logout-btn {
       border: 1px solid #dfe3eb;
@@ -1168,9 +1176,61 @@
       </div>
 
 
-      <div class="role-grid">
+    <script>
+  // Keep role selection available even if an external auth dependency fails to load.
+  window.karmsthanRoleFallback = function(role, element) {
+    window.karmsthanSelectedRole = role;
+    document.querySelectorAll(".role-card").forEach(card => card.classList.remove("selected"));
+    if (element) element.classList.add("selected");
 
-        <div class="role-card" data-role="Employer" role="button" tabindex="0" aria-label="Continue as Employer">
+    const badge = document.getElementById("roleBadge");
+    if (badge) badge.textContent = "CONTINUE AS " + String(role).toUpperCase();
+
+    const panel = document.getElementById("authPanel");
+    if (panel) {
+      panel.classList.remove("hidden");
+      panel.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
+  // Capture role-card clicks before any other application handler.
+  // The cards use a real #authPanel anchor, so the basic transition also works
+  // when the main application bundle or Supabase is unavailable.
+  document.addEventListener("click", function(event) {
+    const card = event.target.closest && event.target.closest(".role-card-link");
+    if (!card) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const role = card.getAttribute("data-role");
+    if (role && window.karmsthanRoleFallback) {
+      window.karmsthanRoleFallback(role, card);
+    }
+    if (role && typeof window.selectRole === "function") {
+      window.selectRole(role, card);
+    }
+  }, true);
+
+  // Recover role selection from the native-link fallback after a full-page navigation.
+  (function () {
+    const role = new URLSearchParams(window.location.search).get("role");
+    if (!role) return;
+    const allowed = ["Employer", "Recruiter", "Candidate"];
+    if (!allowed.includes(role)) return;
+
+    window.addEventListener("DOMContentLoaded", function () {
+      const card = Array.from(document.querySelectorAll(".role-card"))
+        .find(el => el.getAttribute("data-role") === role);
+      window.karmsthanRoleFallback(role, card);
+      history.replaceState({}, "", window.location.pathname + "#authPanel");
+    });
+  })();
+</script>
+
+  <div class="role-grid">
+
+        <button type="button" class="role-card role-card-link" data-role="Employer" onclick="window.karmsthanRoleFallback && window.karmsthanRoleFallback('Employer', this);">
           <div class="role-icon">🏢</div>
 
           <h3>Employer</h3>
@@ -1183,10 +1243,10 @@
           <div class="role-action">
             Continue as Employer →
           </div>
-        </div>
+        </button>
 
 
-        <div class="role-card" data-role="Recruiter" role="button" tabindex="0" aria-label="Continue as Recruiter">
+        <button type="button" class="role-card role-card-link" data-role="Recruiter" onclick="if (window.karmsthanRoleFallback) window.karmsthanRoleFallback('Recruiter', this); if (typeof selectRole === 'function') selectRole('Recruiter', this);">
           <div class="role-icon">👥</div>
 
           <h3>Recruiter</h3>
@@ -1199,10 +1259,10 @@
           <div class="role-action">
             Continue as Recruiter →
           </div>
-        </div>
+        </button>
 
 
-        <div class="role-card" data-role="Candidate" role="button" tabindex="0" aria-label="Continue as Candidate">
+        <button type="button" class="role-card role-card-link" data-role="Candidate" onclick="if (window.karmsthanRoleFallback) window.karmsthanRoleFallback('Candidate', this); if (typeof selectRole === 'function') selectRole('Candidate', this);">
           <div class="role-icon">🎯</div>
 
           <h3>Candidate</h3>
@@ -1215,7 +1275,7 @@
           <div class="role-action">
             Continue as Candidate →
           </div>
-        </div>
+        </button>
 
       </div>
 
@@ -1330,7 +1390,6 @@
       <div class="dashboard-title">
 
         <div class="workspace-kicker">AI-POWERED HIRING INTELLIGENCE</div>
-        <div id="workspaceIdentity" class="workspace-identity hidden" aria-label="Current workspace"></div>
 
         <h1 id="welcomeTitle">
           Welcome to KARMSTHAN
@@ -1871,14 +1930,53 @@
 
 
   <!-- CANDIDATE LIST -->
-  <div id="candidateListContainer" style="border:1px solid #e6e9ef;border-radius:12px;padding:20px;background:#fff;">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:15px;">
-      <div><strong>Your candidates</strong><span id="candidateTotalCount" style="color:#7a8499;font-size:12px;margin-left:8px;">0 total</span></div>
-      <input id="candidateSearchInput" type="search" placeholder="Search name, title, company, skills..." aria-label="Search candidates" oninput="filterCandidateDirectory()" style="width:min(360px,100%);height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 12px;outline:none;font-size:12px;background:#fff;">
+
+  <div
+    id="candidateListContainer"
+    style="
+      border:1px solid #e6e9ef;
+      border-radius:12px;
+      padding:20px;
+      background:#fff;
+    "
+  >
+
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:15px;
+    ">
+
+      <strong>Your candidates</strong>
+
+      <span
+        id="candidateTotalCount"
+        style="
+          color:#7a8499;
+          font-size:12px;
+        "
+      >
+        0 total
+      </span>
+
     </div>
-    <div id="candidateListEmpty" style="color:#7a8499;font-size:13px;">No candidates added yet. Add your first candidate to begin.</div>
-    <div id="candidateListResults"></div>
+
+
+    <div id="candidateListEmpty">
+
+      <div style="
+        color:#7a8499;
+        font-size:13px;
+      ">
+        No candidates added yet.
+        Add your first candidate to begin.
+      </div>
+
+    </div>
+
   </div>
+
 </div> </div>
 <!-- JOB MANAGEMENT WORKSPACE -->
 
@@ -2253,13 +2351,6 @@
 
   <!-- JOB LIST -->
 
-  <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;">
-    <input id="jobSearchInput" type="search" placeholder="Search title, location, department..." aria-label="Search jobs" oninput="filterJobDirectory()" style="width:min(320px,100%);height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 12px;outline:none;font-size:12px;background:#fff;">
-    <select id="jobStatusFilter" aria-label="Filter jobs by status" onchange="filterJobDirectory()" style="height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 10px;font-size:12px;background:#fff;">
-      <option value="">All statuses</option><option value="open">Open</option><option value="draft">Draft</option><option value="closed">Closed</option>
-    </select>
-  </div>
-
   <div
     id="jobListContainer"
     style="margin-top:30px;"
@@ -2390,14 +2481,6 @@
 
     <div id="applicationPipelineSummary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;"></div>
 
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:15px;">
-      <input id="applicationSearchInput" type="search" placeholder="Search candidate or job..." aria-label="Search applications" oninput="filterApplicationPipeline()" style="width:min(320px,100%);height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 12px;outline:none;font-size:12px;background:#fff;">
-      <select id="applicationStatusFilter" aria-label="Filter applications by status" onchange="filterApplicationPipeline()" style="height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 10px;font-size:12px;background:#fff;">
-        <option value="">All stages</option><option value="submitted">Submitted</option><option value="screening">Screening</option><option value="applied">Applied</option><option value="shortlisted">Shortlisted</option><option value="interview">Interview</option><option value="selected">Selected</option><option value="offer">Offer</option><option value="accepted">Accepted</option><option value="joined">Joined</option><option value="rejected">Rejected</option>
-      </select>
-      <button type="button" class="secondary-btn" style="width:auto;padding:9px 13px;font-size:11px;" onclick="clearApplicationPipelineFilter()">Clear filters</button>
-    </div>
-
     <div id="applicationListContainer" style="border:1px solid #e6e9ef;border-radius:12px;padding:20px;background:#fff;">
       <div id="applicationListEmpty" style="color:#7a8499;font-size:13px;">
         No applications yet. Create the first job-candidate application.
@@ -2423,7 +2506,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 
 <!-- Supabase JavaScript client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Use a pinned UMD build for reliable browser loading. -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.112.4"></script>
 
 <script>
 
@@ -2437,21 +2521,29 @@
   const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_GMhbifhvzd8nrELaKcofDQ_GREm1xhU";
 
-  const { createClient } =
-    window.supabase;
+  // Supabase must never be allowed to block the landing page.
+  // The role picker remains functional even if the CDN is unavailable.
+  let supabaseClient = null;
 
-  const supabaseClient =
-    createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
+  try {
+    if (window.supabase && typeof window.supabase.createClient === "function") {
+      supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
+    } else {
+      console.warn("KARMSTHAN: Supabase browser SDK is not available.");
+    }
+  } catch (error) {
+    console.error("KARMSTHAN: Supabase initialization failed.", error);
+  }
 
 
   /* =========================================================
      APPLICATION STATE
      ========================================================= */
 
-  let selectedRole = "";
+  let selectedRole = window.karmsthanSelectedRole || "";
   let authMode = "login";
 
 
@@ -2459,24 +2551,10 @@
      ROLE SELECTION
      ========================================================= */
 
-  document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".role-card[data-role]").forEach(function(card) {
-      const activate = function() {
-        selectRole(card.dataset.role, card);
-      };
-      card.addEventListener("click", activate);
-      card.addEventListener("keydown", function(event) {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          activate();
-        }
-      });
-    });
-  });
-
   function selectRole(role, element) {
 
     selectedRole = role;
+    window.karmsthanSelectedRole = role;
 
     document
       .querySelectorAll(".role-card")
@@ -2718,32 +2796,68 @@ const { data, error } =
      ========================================================= */
 
 async function loadCurrentUser() {
-  const { data, error } = await supabaseClient.auth.getUser();
-  if (error || !data.user) return;
 
-  const user = data.user;
-  const metadata = user.user_metadata || {};
-  const name = metadata.full_name || user.email || "KARMSTHAN User";
-  const role = metadata.role || selectedRole || "User";
+  const {
+    data,
+    error
+  } = await supabaseClient.auth.getUser();
 
-  document.getElementById("welcomeTitle").textContent = "Welcome, " + name;
-  document.getElementById("welcomeSubtitle").textContent =
-    role + " workspace · KARMSTHAN Hiring Intelligence";
-
-  document.getElementById("landingView").classList.add("hidden");
-  document.getElementById("dashboardView").classList.remove("hidden");
-
-  const companySetup = document.getElementById("companySetupCard");
-  const dashboardContent = document.getElementById("dashboardContent");
-
-  // Candidates use the public/profile flow; recruiter and employer use a company workspace.
-  if (role === "Candidate") {
-    companySetup?.classList.add("hidden");
-    dashboardContent?.classList.remove("hidden");
+  if (error || !data.user) {
     return;
   }
 
-  const { data: membership, error: membershipError } = await supabaseClient
+  const user = data.user;
+
+  const metadata = user.user_metadata || {};
+
+  const name =
+    metadata.full_name ||
+    user.email ||
+    "KARMSTHAN User";
+
+  const role =
+    metadata.role ||
+    selectedRole ||
+    "User";
+
+  document.getElementById("welcomeTitle").textContent =
+    "Welcome, " + name;
+
+  document.getElementById("welcomeSubtitle").textContent =
+    role + " workspace · KARMSTHAN Hiring Intelligence";
+
+  /* Show authenticated dashboard */
+  document
+    .getElementById("landingView")
+    .classList.add("hidden");
+
+  document
+    .getElementById("dashboardView")
+    .classList.remove("hidden");
+
+  /*
+   * Only Employers need a company workspace
+   * at this stage.
+   */
+  if (role !== "Employer") {
+
+    document
+      .getElementById("companySetupCard")
+      ?.classList.add("hidden");
+
+    document
+      .getElementById("dashboardContent")
+      ?.classList.remove("hidden");
+
+    return;
+  }
+
+  /* Check whether Employer already belongs to a company */
+
+  const {
+    data: membership,
+    error: membershipError
+  } = await supabaseClient
     .from("company_members")
     .select("company_id, member_role")
     .eq("user_id", user.id)
@@ -2751,90 +2865,111 @@ async function loadCurrentUser() {
     .maybeSingle();
 
   if (membershipError) {
-    console.error("Company membership lookup failed:", membershipError);
-    showCompanyMessage("Unable to load your company workspace. Please refresh and try again.", true);
+
+    console.error(
+      "Company membership lookup failed:",
+      membershipError
+    );
+
+    showCompanyMessage(
+      "Unable to load your company workspace. Please refresh and try again.",
+      true
+    );
+
     return;
   }
+
+  /* No company → show Company Setup */
 
   if (!membership) {
-    if (role === "Employer") {
-      companySetup?.classList.remove("hidden");
-      dashboardContent?.classList.add("hidden");
-    } else {
-      companySetup?.classList.add("hidden");
-      dashboardContent?.classList.remove("hidden");
-      const intelligence = document.getElementById("hiringIntelligencePanel");
-      if (intelligence) {
-        intelligence.innerHTML = '<div class="intelligence-empty"><strong>Recruiter access is not connected yet.</strong><span>Ask your employer or workspace administrator to add this account to a KARMSTHAN company workspace.</span></div>';
-      }
-    }
+
+    document
+      .getElementById("companySetupCard")
+      ?.classList.remove("hidden");
+
+    document
+      .getElementById("dashboardContent")
+      ?.classList.add("hidden");
+
     return;
   }
 
-  const { data: company, error: companyError } = await supabaseClient
+  /* Company exists → load company */
+
+  const {
+    data: company,
+    error: companyError
+  } = await supabaseClient
     .from("companies")
     .select("*")
     .eq("id", membership.company_id)
     .maybeSingle();
 
   if (companyError || !company) {
-    console.error("Company lookup failed:", companyError);
-    showCompanyMessage("Your company workspace could not be loaded.", true);
+
+    console.error(
+      "Company lookup failed:",
+      companyError
+    );
+
+    showCompanyMessage(
+      "Your company workspace could not be loaded.",
+      true
+    );
+
     return;
   }
 
+  /* Store company context */
+
   window.karmsthanCompany = company;
-  window.karmsthanCompanyMembership = membership;
 
-  companySetup?.classList.add("hidden");
-  dashboardContent?.classList.remove("hidden");
+  window.karmsthanCompanyMembership =
+    membership;
 
-  document.getElementById("welcomeSubtitle").textContent =
-    role + " workspace · " + company.name + " · KARMSTHAN Hiring Intelligence";
+  /* Company exists → show dashboard */
 
-  const workspaceBadge = document.getElementById("workspaceIdentity");
-  if (workspaceBadge) {
-    workspaceBadge.innerHTML = `<span>${escapeHtml(company.name)}</span><span>·</span><span>${escapeHtml(membership.member_role || role)}</span>`;
-    workspaceBadge.classList.remove("hidden");
-  }
+  document
+    .getElementById("companySetupCard")
+    ?.classList.add("hidden");
 
-  await Promise.all([
-    loadJobs(),
-    loadCandidates(),
-    loadApplications(),
-    loadHiringIntelligence(false)
-  ]);
+  document
+    .getElementById("dashboardContent")
+    ?.classList.remove("hidden");
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  document
+    .getElementById("welcomeSubtitle")
+    .textContent =
+      role +
+      " workspace · " +
+      company.name +
+      " · KARMSTHAN Hiring Intelligence";
+
+  loadHiringIntelligence(false);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
+
 
 async function loadHiringIntelligence(showErrors = false) {
   const list = document.getElementById("intelligenceList");
   if (!list) return;
   try {
     const { company } = await getCurrentCompany();
-    const [{ data: jobs, error: jobsError }, { data: candidates, error: candidatesError }] = await Promise.all([
+    const [{ data: jobs, error: jobsError }, { data: candidates, error: candidatesError }, { data: applications, error: applicationsError }] = await Promise.all([
       supabaseClient.from("jobs").select("id,title,jd_text,experience_min,experience_max,salary_min,salary_max,currency,status").eq("company_id", company.id),
-      supabaseClient.from("candidates").select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills").eq("company_id", company.id)
+      supabaseClient.from("candidates").select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills").eq("company_id", company.id),
+      supabaseClient.from("applications").select("*").order("created_at", { ascending:false })
     ]);
     if (jobsError) throw jobsError;
     if (candidatesError) throw candidatesError;
+    if (applicationsError) throw applicationsError;
 
-    const jobIds = (jobs || []).map(job => job.id);
-    let applications = [];
-    if (jobIds.length) {
-      const { data, error: applicationsError } = await supabaseClient
-        .from("applications")
-        .select("id,job_id,candidate_id,status,source,created_at")
-        .in("job_id", jobIds)
-        .order("created_at", { ascending:false });
-      if (applicationsError) throw applicationsError;
-      applications = data || [];
-    }
     const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
     const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
-    window.karmsthanApplicationJobMap = jobMap;
-    window.karmsthanApplicationCandidateMap = candidateMap;
     const rows = (applications || []).filter(app => jobMap[app.job_id] && candidateMap[app.candidate_id]).map(app => {
       const job=jobMap[app.job_id], candidate=candidateMap[app.candidate_id];
       return {app,job,candidate,readiness:calculateHiringReadiness(job,candidate)};
@@ -2855,7 +2990,7 @@ async function loadHiringIntelligence(showErrors = false) {
       const name=row.candidate.full_name||"Unnamed candidate";
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase()||"K";
       const signal=row.readiness.reasons[0]||row.readiness.concerns[0]||"More candidate information is needed.";
-      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+'</span><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;"><button type="button" class="secondary-btn" style="width:auto;padding:6px 9px;font-size:10px;" onclick="openCandidateDetails(\''+row.candidate.id+'\')">Candidate</button><button type="button" class="secondary-btn" style="width:auto;padding:6px 9px;font-size:10px;" onclick="openJobDetails(\''+row.job.id+'\')">Job</button></div></div></div><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS</span></div></div>';
+      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+'</span></div></div><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS</span></div></div>';
     }).join("");
   } catch(error) {
     console.error("Hiring intelligence error:",error);
@@ -3020,13 +3155,6 @@ async function createCompany(event) {
     document
       .getElementById("companySetupForm")
       ?.reset();
-
-    await Promise.all([
-      loadJobs(),
-      loadCandidates(),
-      loadApplications(),
-      loadHiringIntelligence(false)
-    ]);
 
   } catch (error) {
 
@@ -3212,12 +3340,10 @@ async function loadJobs() {
       return;
     }
 
-    window.karmsthanJobDirectory = jobs || [];
-    updateActiveJobsCount(jobs.filter(job => job.status === "open").length);
-    const jobSearch = document.getElementById("jobSearchInput");
-    const jobStatus = document.getElementById("jobStatusFilter");
-    if (jobSearch) jobSearch.value = "";
-    if (jobStatus) jobStatus.value = "";
+    updateActiveJobsCount(
+      jobs.filter(job => job.status === "open").length
+    );
+
     renderJobs(jobs);
 
   } catch (error) {
@@ -3334,22 +3460,6 @@ function renderJobs(jobs) {
   container.innerHTML = html;
 }
 
-
-function filterJobDirectory() {
-  const jobs = window.karmsthanJobDirectory || [];
-  const query = (document.getElementById("jobSearchInput")?.value || "").trim().toLowerCase();
-  const status = document.getElementById("jobStatusFilter")?.value || "";
-  const filtered = jobs.filter(job => {
-    const text = [job.title, job.location, job.department, job.employment_type, job.jd_text].filter(Boolean).join(" ").toLowerCase();
-    return (!query || text.includes(query)) && (!status || String(job.status || "draft").toLowerCase() === status);
-  });
-  const empty = document.getElementById("jobListEmpty");
-  if (empty) {
-    empty.textContent = !jobs.length ? "No jobs created yet. Create your first hiring requirement." : (!filtered.length ? "No jobs match your current search or filter." : "");
-    empty.classList.toggle("hidden", Boolean(filtered.length));
-  }
-  renderJobs(filtered);
-}
 
 /* Save new job */
 
@@ -4059,9 +4169,12 @@ async function loadCandidates() {
         emptyState.classList.remove("hidden");
       }
 
-      window.karmsthanCandidateDirectory = [];
+      if (container) {
+        container.innerHTML = "";
+      }
+
       updateCandidatesCount(0);
-      renderCandidates([]);
+
       return;
     }
 
@@ -4071,11 +4184,12 @@ async function loadCandidates() {
     }
 
 
-    window.karmsthanCandidateDirectory = candidates || [];
-    updateCandidatesCount(candidates.length);
-    const searchInput = document.getElementById("candidateSearchInput");
-    if (searchInput) searchInput.value = "";
-    renderCandidates(candidates || []);
+    updateCandidatesCount(
+      candidates.length
+    );
+
+
+    renderCandidates(candidates);
 
 
   } catch (error) {
@@ -4098,34 +4212,71 @@ async function loadCandidates() {
 /* Render candidates */
 
 function renderCandidates(candidates) {
-  const container = document.getElementById('candidateListResults');
-  if (!container) return;
-  if (!candidates.length) { container.innerHTML = ''; return; }
-  container.innerHTML = candidates.map(candidate => {
-    const skills = Array.isArray(candidate.skills) ? candidate.skills.join(' ') : (candidate.skills || '');
-    return "<div role='button' tabindex='0' onclick=\"openCandidateDetails('"+candidate.id+"')\" style='border:1px solid #e6e9ef;border-radius:12px;padding:18px;margin-bottom:12px;background:#fff;cursor:pointer;'>" +
-      "<div style='display:flex;justify-content:space-between;gap:12px;align-items:flex-start;'><strong style='font-size:15px;'>"+escapeHtml(candidate.full_name || 'Unnamed candidate')+"</strong><span style='padding:5px 9px;border-radius:18px;background:#edf4ff;color:#0b2f6b;font-size:10px;font-weight:800;'>"+(candidate.total_experience != null ? escapeHtml(candidate.total_experience+' yrs') : 'Experience —')+"</span></div>" +
-      "<div style='margin-top:7px;color:#7a8499;font-size:12px;'>"+escapeHtml(candidate.current_title || 'Title not specified')+" · "+escapeHtml(candidate.current_company || 'Company not specified')+"</div>" +
-      "<div style='margin-top:6px;color:#7a8499;font-size:12px;'>"+escapeHtml(candidate.current_location || 'Location not specified')+" · "+escapeHtml(skills || 'Skills not specified')+"</div></div>";
-  }).join('');
-}
 
-function filterCandidateDirectory() {
-  const candidates = window.karmsthanCandidateDirectory || [];
-  const input = document.getElementById('candidateSearchInput');
-  const query = (input?.value || '').trim().toLowerCase();
-  const filtered = !query ? candidates : candidates.filter(candidate => {
-    const skills = Array.isArray(candidate.skills) ? candidate.skills.join(' ') : (candidate.skills || '');
-    return [candidate.full_name,candidate.current_title,candidate.current_company,candidate.current_location,candidate.email,candidate.phone,skills].filter(Boolean).join(' ').toLowerCase().includes(query);
+  const container =
+    document.getElementById("candidateListContainer");
+
+  if (!container) return;
+
+
+  let html = "";
+
+
+  candidates.forEach(candidate => {
+
+    html += `
+      <div role="button" tabindex="0"
+        onclick="openCandidateDetails('${candidate.id}')"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCandidateDetails('${candidate.id}')}"}
+        style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;margin-bottom:12px;background:#fff;cursor:pointer;transition:.15s;"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 22px rgba(30,41,90,.08)';"
+        onmouseout="this.style.transform='';this.style.boxShadow='';">
+
+        <strong style="
+          font-size:15px;
+        ">
+          ${escapeHtml(candidate.full_name)}
+        </strong>
+
+        <div style="
+          margin-top:7px;
+          color:#7a8499;
+          font-size:12px;
+        ">
+          ${escapeHtml(
+            candidate.current_title ||
+            "Title not specified"
+          )}
+          ·
+          ${escapeHtml(
+            candidate.current_company ||
+            "Company not specified"
+          )}
+        </div>
+
+        <div style="
+          margin-top:6px;
+          color:#7a8499;
+          font-size:12px;
+        ">
+          ${escapeHtml(
+            candidate.current_location ||
+            "Location not specified"
+          )}
+          ·
+          ${
+            candidate.total_experience != null
+              ? candidate.total_experience + " years"
+              : "Experience not specified"
+          }
+        </div>
+
+      </div>
+    `;
   });
-  const emptyState = document.getElementById('candidateListEmpty');
-  if (emptyState) {
-    emptyState.textContent = !candidates.length ? 'No candidates added yet. Add your first candidate to begin.' : (!filtered.length ? 'No candidates match your search.' : '');
-    emptyState.classList.toggle('hidden', Boolean(filtered.length));
-  }
-  const count = document.getElementById('candidateTotalCount');
-  if (count) count.textContent = query ? filtered.length+' of '+candidates.length+' shown' : candidates.length+' total';
-  renderCandidates(filtered);
+
+
+  container.innerHTML = html;
 }
 
 
@@ -4318,7 +4469,7 @@ async function createApplication(event) {
   }
 
   try {
-    const { user, companyId } = await getApplicationContext();
+    const { user } = await getApplicationContext();
     const jobId = document.getElementById("applicationJob")?.value;
     const candidateId = document.getElementById("applicationCandidate")?.value;
     const source = document.getElementById("applicationSource")?.value || "direct";
@@ -4326,14 +4477,6 @@ async function createApplication(event) {
     const notes = document.getElementById("applicationNotes")?.value.trim();
 
     if (!jobId || !candidateId) throw new Error("Please select both a job and a candidate.");
-
-    const [{ data: job, error: jobError }, { data: candidate, error: candidateError }] = await Promise.all([
-      supabaseClient.from("jobs").select("id").eq("id", jobId).eq("company_id", companyId).maybeSingle(),
-      supabaseClient.from("candidates").select("id").eq("id", candidateId).eq("company_id", companyId).maybeSingle()
-    ]);
-    if (jobError) throw jobError;
-    if (candidateError) throw candidateError;
-    if (!job || !candidate) throw new Error("The selected job or candidate is not part of your company workspace.");
 
     const { data: existing, error: existingError } = await supabaseClient
       .from("applications")
@@ -4401,23 +4544,16 @@ async function loadApplications() {
     const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
     const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
 
-    const jobIds = (jobs || []).map(job => job.id);
-    let applications = [];
-    if (jobIds.length) {
-      const { data, error } = await supabaseClient
-        .from("applications")
-        .select("id,job_id,candidate_id,status,source,created_at,updated_at,notes")
-        .in("job_id", jobIds)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      applications = data || [];
-    }
+    const { data: applications, error } = await supabaseClient
+      .from("applications")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
 
     const companyApplications = (applications || []).filter(app =>
       jobMap[app.job_id] && candidateMap[app.candidate_id]
     );
 
-    window.karmsthanApplicationDirectory = companyApplications;
     updateApplicationsCount(companyApplications.length);
     renderApplicationPipeline(companyApplications);
 
@@ -4440,36 +4576,6 @@ async function loadApplications() {
     }
     updateApplicationsCount(0);
   }
-}
-
-function filterApplicationPipeline() {
-  const applications = window.karmsthanApplicationDirectory || [];
-  const query = (document.getElementById("applicationSearchInput")?.value || "").trim().toLowerCase();
-  const status = document.getElementById("applicationStatusFilter")?.value || "";
-  const jobs = window.karmsthanApplicationJobMap || {};
-  const candidates = window.karmsthanApplicationCandidateMap || {};
-  const filtered = applications.filter(app => {
-    const job = jobs[app.job_id] || {};
-    const candidate = candidates[app.candidate_id] || {};
-    const text = [job.title,candidate.full_name,candidate.current_title,candidate.current_company].filter(Boolean).join(" ").toLowerCase();
-    return (!query || text.includes(query)) && (!status || app.status === status);
-  });
-  const empty = document.getElementById("applicationListEmpty");
-  if (empty) {
-    empty.textContent = !applications.length ? "No applications yet. Create the first job-candidate application." : (!filtered.length ? "No applications match your current search or filter." : "");
-    empty.classList.toggle("hidden", Boolean(filtered.length));
-  }
-  const total = document.getElementById("applicationTotalCount");
-  if (total) total.textContent = (query || status) ? filtered.length + " of " + applications.length + " shown" : applications.length + " total";
-  renderApplications(filtered, jobs, candidates);
-}
-
-function clearApplicationPipelineFilter() {
-  const search = document.getElementById("applicationSearchInput");
-  const status = document.getElementById("applicationStatusFilter");
-  if (search) search.value = "";
-  if (status) status.value = "";
-  filterApplicationPipeline();
 }
 
 function updateApplicationsCount(count) {
@@ -4495,47 +4601,24 @@ function renderApplicationPipeline(applications) {
   }).join("");
 }
 
-function normalizeMatchText(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/c\+\+/g, "cplusplus")
-    .replace(/c#/g, "csharp")
-    .replace(/\.net/g, "dotnet")
-    .replace(/node\.js/g, "nodejs")
-    .replace(/react\.js/g, "react")
-    .replace(/[^a-z0-9]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function skillMatchesJob(skill, normalizedJobText) {
-  const normalizedSkill = normalizeMatchText(skill);
-  if (!normalizedSkill || normalizedSkill.length < 2) return false;
-
-  const skillPattern = normalizedSkill.replace(/\\s+/g, "\\\\s+");
-  const pattern = new RegExp("(^|\\s)" + skillPattern + "(?=\\s|$)", "i");
-  return pattern.test(" " + normalizedJobText + " ");
-}
-
 function calculateHiringReadiness(job, candidate) {
   let score = 50;
   const reasons = [];
   const concerns = [];
 
-  const normalizedJobText = normalizeMatchText(job?.jd_text);
+  const jobText = String(job?.jd_text || "").toLowerCase();
   const candidateSkills = Array.isArray(candidate?.skills)
-    ? candidate.skills.map(skill => String(skill).trim()).filter(Boolean)
+    ? candidate.skills.map(skill => String(skill).toLowerCase().trim()).filter(Boolean)
     : [];
 
-  const matchedSkills = candidateSkills.filter(skill =>
-    skillMatchesJob(skill, normalizedJobText)
-  );
-
-  if (matchedSkills.length) {
-    score += Math.min(30, matchedSkills.length * 6);
-    reasons.push("Matched skills: " + matchedSkills.slice(0, 6).join(", ") + ".");
-  } else if (candidateSkills.length) {
-    concerns.push("No listed candidate skill matched the job description using normalized skill matching.");
+  if (candidateSkills.length) {
+    const matched = candidateSkills.filter(skill => skill.length > 1 && jobText.includes(skill));
+    if (matched.length) {
+      score += Math.min(30, matched.length * 7);
+      reasons.push("Skills found in the candidate profile: " + matched.slice(0, 5).join(", ") + ".");
+    } else {
+      concerns.push("No entered candidate skill was found verbatim in the job description.");
+    }
   } else {
     concerns.push("Candidate skills are not yet populated.");
   }
@@ -4570,18 +4653,8 @@ function calculateHiringReadiness(job, candidate) {
     }
   }
 
-  const noticeDays = Number(candidate?.notice_period_days);
-  if (Number.isFinite(noticeDays)) {
-    if (noticeDays <= 30) {
-      score += 2;
-      reasons.push("Notice period is 30 days or less.");
-    } else if (noticeDays > 90) {
-      concerns.push("Notice period is longer than 90 days.");
-    }
-  }
-
   const readiness = Math.max(0, Math.min(100, Math.round(score)));
-  return { score: readiness, reasons, concerns, matchedSkills };
+  return { score: readiness, reasons, concerns };
 }
 
 function renderApplications(applications, jobMap, candidateMap) {
@@ -4603,10 +4676,6 @@ function renderApplications(applications, jobMap, candidateMap) {
             <div style="margin-top:6px;color:#7a8499;font-size:12px;">
               Applied to <b>${escapeHtml(job.title)}</b>
               · ${escapeHtml(candidate.current_title || "Title not specified")}
-            </div>
-            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;">
-              <button type="button" class="secondary-btn" style="width:auto;padding:7px 10px;font-size:11px;" onclick="openCandidateDetails('${candidate.id}')">Open candidate</button>
-              <button type="button" class="secondary-btn" style="width:auto;padding:7px 10px;font-size:11px;" onclick="openJobDetails('${job.id}')">Open job</button>
             </div>
           </div>
 
@@ -4654,30 +4723,6 @@ function renderApplications(applications, jobMap, candidateMap) {
 
 async function updateApplicationStatus(applicationId, status) {
   try {
-    if (!APPLICATION_STATUSES.includes(status)) {
-      throw new Error("Invalid application status.");
-    }
-
-    const { companyId } = await getApplicationContext();
-    const { data: application, error: lookupError } = await supabaseClient
-      .from("applications")
-      .select("id,job_id")
-      .eq("id", applicationId)
-      .maybeSingle();
-
-    if (lookupError) throw lookupError;
-    if (!application) throw new Error("Application could not be found.");
-
-    const { data: job, error: jobError } = await supabaseClient
-      .from("jobs")
-      .select("id")
-      .eq("id", application.job_id)
-      .eq("company_id", companyId)
-      .maybeSingle();
-
-    if (jobError) throw jobError;
-    if (!job) throw new Error("This application is outside your company workspace.");
-
     const { error } = await supabaseClient
       .from("applications")
       .update({ status, updated_at: new Date().toISOString() })
@@ -4724,63 +4769,17 @@ async function openJobDetails(jobId){
       </div>
       <h3 style="margin-bottom:8px;">Job description</h3>
       <div style="white-space:pre-wrap;background:#fafbff;border:1px solid #e6e9ef;border-radius:12px;padding:18px;color:#475467;font-size:13px;line-height:1.7;">${escapeHtml(job.jd_text||"No job description provided.")}</div>
-      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="openJobCandidateMatches('${job.id}')">Find matching candidates</button><button type="button" class="secondary-btn" style="width:auto;padding:11px 18px;" onclick="closeKarmsthanDetail();openCandidateManagement()">Manage Candidates</button>`);
+      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closeKarmsthanDetail();openCandidateManagement()">Manage Candidates</button>`);
   }catch(e){console.error(e);alert(e.message||"Unable to open job details.");}
 }
 
-async function openJobCandidateMatches(jobId){
-  try{
-    const {companyId}=await getCurrentCandidateUser();
-    const [{data:job,error:jobError},{data:candidates,error:candidatesError},{data:applications,error:applicationsError}]=await Promise.all([
-      supabaseClient.from("jobs").select("*").eq("id",jobId).eq("company_id",companyId).maybeSingle(),
-      supabaseClient.from("candidates").select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills").eq("company_id",companyId).order("created_at",{ascending:false}),
-      supabaseClient.from("applications").select("id,candidate_id,status").eq("job_id",jobId)
-    ]);
-    if(jobError)throw jobError;if(candidatesError)throw candidatesError;if(applicationsError)throw applicationsError;if(!job)throw new Error("Job could not be found.");
-    const appliedByCandidate=Object.fromEntries((applications||[]).map(app=>[app.candidate_id,app]));
-    const matches=(candidates||[]).map(candidate=>({candidate,readiness:calculateHiringReadiness(job,candidate),application:appliedByCandidate[candidate.id]})).sort((a,b)=>b.readiness.score-a.readiness.score).slice(0,8);
-    const rows=matches.length?matches.map(({candidate,readiness,application})=>{
-      const action=application?'<span style="color:#667085;font-size:11px;font-weight:700;">Already in pipeline · '+escapeHtml(applicationStatusLabel(application.status))+'</span>':'<button type="button" class="primary-btn" style="width:auto;padding:8px 12px;margin:0;font-size:11px;" onclick="closeKarmsthanDetail();openApplicationForCandidate(\''+candidate.id+\',\''+job.id+\')">Create application</button>';
-      return '<div style="border:1px solid #e2e8f0;border-radius:12px;padding:15px;margin-top:10px;background:#fbfdff;"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;"><div><strong style="font-size:14px;">'+escapeHtml(candidate.full_name||"Unnamed candidate")+'</strong><div style="color:#7a8499;font-size:11px;margin-top:4px;">'+escapeHtml(candidate.current_title||"Candidate")+' · '+escapeHtml(candidate.current_company||"Company not specified")+'</div></div><span style="padding:5px 9px;border-radius:18px;background:#fff3eb;color:#e95e00;font-size:10px;font-weight:900;">'+readiness.score+'/100</span></div><div style="margin-top:10px;color:#667085;font-size:11px;line-height:1.55;">'+escapeHtml(readiness.reasons.slice(0,2).join(" ")||readiness.concerns.slice(0,1).join(" ")||"Limited matching signals available.")+'</div><div style="margin-top:11px;">'+action+'</div></div>';
-    }).join(""):'<div style="margin-top:10px;color:#98a2b3;font-size:12px;">No candidates are available yet.</div>';
-    showKarmsthanDetail('<div class="role-badge">CANDIDATE MATCHING</div><h2 style="font-size:28px;margin:10px 0 7px;">Best matches for '+escapeHtml(job.title)+'</h2><p style="color:#7a8499;font-size:13px;margin-bottom:18px;">Top candidates ranked using KARMSTHAN’s current explainable Hiring Readiness signals.</p><div>'+rows+'</div>');
-  }catch(e){console.error(e);alert(e.message||"Unable to find matching candidates.");}
-}
 async function openCandidateDetails(candidateId){
   try{
     const {companyId}=await getCurrentCandidateUser();
-    const [{data:candidate,error:candidateError},{data:jobs,error:jobsError}] = await Promise.all([
-      supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle(),
-      supabaseClient.from("jobs").select("id,title,jd_text,experience_min,experience_max,salary_min,salary_max,currency,status,location").eq("company_id",companyId).order("created_at",{ascending:false})
-    ]);
-    if(candidateError)throw candidateError;
-    if(jobsError)throw jobsError;
-    if(!candidate)throw new Error("Candidate could not be found.");
-
+    const {data:candidate,error}=await supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle();
+    if(error)throw error;if(!candidate)throw new Error("Candidate could not be found.");
     const skills=Array.isArray(candidate.skills)?candidate.skills:[];
     const skillHtml=skills.length?skills.map(s=>`<span style="display:inline-block;padding:6px 9px;margin:0 6px 6px 0;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:11px;font-weight:700;">${escapeHtml(s)}</span>`).join(""):"<span style='color:#98a2b3'>No skills added yet.</span>";
-
-    const matches=(jobs||[])
-      .filter(job=>String(job.status||"").toLowerCase()==="open")
-      .map(job=>({job,readiness:calculateHiringReadiness(job,candidate)}))
-      .sort((a,b)=>b.readiness.score-a.readiness.score)
-      .slice(0,5);
-
-    const matchHtml=matches.length
-      ? matches.map(({job,readiness})=>`
-        <div style="border:1px solid #e2e8f0;border-radius:12px;padding:15px;margin-top:10px;background:#fbfdff;">
-          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-            <div>
-              <strong style="font-size:14px;">${escapeHtml(job.title)}</strong>
-              <div style="color:#7a8499;font-size:11px;margin-top:4px;">${escapeHtml(job.location||"Location not specified")}</div>
-            </div>
-            <span style="padding:5px 9px;border-radius:18px;background:#fff3eb;color:#e95e00;font-size:10px;font-weight:900;">${readiness.score}/100</span>
-          </div>
-          <div style="margin-top:9px;color:#667085;font-size:11px;line-height:1.55;">${escapeHtml(readiness.reasons.slice(0,2).join(" ") || readiness.concerns.slice(0,1).join(" ") || "Limited matching signals available.")}</div>
-          <button type="button" class="primary-btn" style="width:auto;padding:8px 12px;margin-top:11px;font-size:11px;" onclick="closeKarmsthanDetail();openApplicationForCandidate('${candidate.id}','${job.id}')">Create application</button>
-        </div>`).join("")
-      : "<div style='margin-top:10px;color:#98a2b3;font-size:12px;'>No open jobs are available for matching yet.</div>";
-
     showKarmsthanDetail(`<div class="role-badge">CANDIDATE PROFILE</div>
       <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(candidate.full_name)}</h2>
       <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(candidate.current_title||"Title not specified")} · ${escapeHtml(candidate.current_company||"Company not specified")}</p>
@@ -4793,23 +4792,9 @@ async function openCandidateDetails(candidateId){
         <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">CONTACT</div><div style="font-size:13px;line-height:1.8;">${escapeHtml(candidate.email||"Email not provided")}<br>${escapeHtml(candidate.phone||"Phone not provided")}<br>${escapeHtml(candidate.current_location||"Location not specified")}</div></div>
         <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">SKILLS</div><div style="margin-top:7px;">${skillHtml}</div></div>
       </div>
-      <div style="border-top:1px solid #e6e9ef;padding-top:20px;">
-        <div class="stat-label">KARMSTHAN MATCHING</div>
-        <h3 style="margin-top:4px;">Relevant open jobs</h3>
-        <p style="margin-top:5px;">Ranked using the current explainable Hiring Readiness signals.</p>
-        <div style="margin-top:8px;">${matchHtml}</div>
-      </div>`);
+      <div style="border-top:1px solid #e6e9ef;padding-top:20px;"><h3>KARMSTHAN intelligence</h3><p style="margin-top:7px;">This profile is ready for job matching, application tracking and Hiring Readiness analysis.</p></div>
+      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closeKarmsthanDetail();openJobManagement()">View Jobs</button>`);
   }catch(e){console.error(e);alert(e.message||"Unable to open candidate profile.");}
-}
-
-async function openApplicationForCandidate(candidateId,jobId){
-  await openApplicationManagement();
-  const jobSelect=document.getElementById("applicationJob");
-  const candidateSelect=document.getElementById("applicationCandidate");
-  if(jobSelect) jobSelect.value=jobId;
-  if(candidateSelect) candidateSelect.value=candidateId;
-  document.getElementById("createApplicationFormContainer")?.classList.remove("hidden");
-  document.getElementById("createApplicationFormContainer")?.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function hideCreateCandidateForm(){const c=document.getElementById("createCandidateFormContainer");if(c)c.classList.add("hidden");const f=document.getElementById("createCandidateForm");if(f)f.reset();const m=document.getElementById("candidateMessage");if(m){m.className="message";m.textContent="";}}
@@ -4885,6 +4870,11 @@ async function logout() {
 
   async function checkSession() {
 
+    if (!supabaseClient) {
+      console.warn("KARMSTHAN: Auth unavailable; landing page remains usable.");
+      return;
+    }
+
     const {
       data
     } =
@@ -4904,20 +4894,22 @@ async function logout() {
      AUTH STATE LISTENER
      ========================================================= */
 
-  supabaseClient.auth.onAuthStateChange(
-    async (event, session) => {
+  if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
 
-      if (
-        event === "SIGNED_IN" &&
-        session
-      ) {
+        if (
+          event === "SIGNED_IN" &&
+          session
+        ) {
 
-        await loadCurrentUser();
+          await loadCurrentUser();
+
+        }
 
       }
-
-    }
-  );
+    );
+  }
 
 
   /* =========================================================
