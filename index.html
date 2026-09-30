@@ -2824,7 +2824,7 @@ async function createCandidate(event) {
 
 
     const fullName =
-      document.getElementById("candidateFullName")
+      document.getElementById("candidateName")
         ?.value.trim();
 
     const email =
@@ -3167,6 +3167,30 @@ async function openCandidateManagement() {
     if (typeof loadCandidates === "function") {
         await loadCandidates();
     }
+}/* =========================================================
+   SHOW CANDIDATE FORM
+   ========================================================= */
+
+function showCreateCandidateForm() {
+
+    const formContainer =
+        document.getElementById("createCandidateFormContainer");
+
+    if (!formContainer) {
+        console.error("Candidate form container not found.");
+        return;
+    }
+
+    formContainer.classList.remove("hidden");
+
+    formContainer.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
+    document
+        .getElementById("candidateName")
+        ?.focus();
 }
 async function logout() {
 
