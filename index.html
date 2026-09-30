@@ -1159,6 +1159,16 @@
       .karmsthan-tagline { font-size:6.5px !important; letter-spacing:.08em !important; }
     }
 
+  
+    /* Exact Karmsthan trademark lockup: lowercase wordmark + TM */
+    .karmsthan-brand { gap:0 !important; width:min(430px, 48vw); }
+    .karmsthan-logo-full { width:100%; max-width:430px; height:58px; overflow:hidden; display:flex; align-items:center; }
+    .karmsthan-logo-full svg { width:100%; height:auto; display:block; }
+    @media (max-width:650px) {
+      .karmsthan-brand { width:230px; }
+      .karmsthan-logo-full { height:48px; }
+    }
+
   </style>
 </head>
 
@@ -1166,19 +1176,22 @@
 
 <header>
   <div class="brand karmsthan-brand">
-    <div class="brand-mark karmsthan-logo-mark" aria-label="Karmsthan logo" role="img">
-      <svg viewBox="0 0 92 64" aria-hidden="true">
-        <path d="M10 9H26V30L42 14H62L42 34L62 55H42L26 40V55H10Z" fill="#0b2f6b"/>
-        <circle cx="32" cy="13" r="6" fill="#ff7417"/>
-        <path d="M17 53C20 38 31 30 43 22C52 16 61 11 70 5L64 19L80 12L72 28L68 20C59 27 51 34 44 42C35 51 27 57 17 60Z" fill="#ff7417"/>
+    <div class="karmsthan-logo-full" aria-label="Karmsthan trademark logo" role="img">
+      <svg viewBox="0 0 1445 390" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="1445" height="390" fill="#fff"/>
+        <g>
+          <path d="M18 42H109V154L18 265Z" fill="#0b2f6b"/>
+          <path d="M126 249L194 190L319 352H214Z" fill="#0b2f6b"/>
+          <circle cx="174" cy="82" r="38" fill="#ff7417"/>
+          <path d="M20 365C19 294 52 245 100 208C153 167 215 137 281 85L257 135L316 105L286 168L279 143C215 195 153 239 103 287C64 324 39 350 20 365Z" fill="#ff7417"/>
+          <path d="M286 85L327 73L316 105Z" fill="#ff7417"/>
+        </g>
+        <text x="345" y="278" font-family="Arial, Helvetica, sans-serif" font-size="205" font-weight="700" letter-spacing="-8" fill="#0b2f6b">armsthan</text>
+        <text x="1368" y="166" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="700" fill="#0b2f6b">™</text>
+        <text x="356" y="350" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="500" letter-spacing="6" fill="#0b2f6b">RIGHT PEOPLE. BRIGHTER FUTURES.</text>
       </svg>
     </div>
-
-    <div class="karmsthan-wordmark-wrap">
-      <div class="brand-name karmsthan-wordmark">KARMSTHAN<span class="karmsthan-tm">™</span></div>
-      <div class="brand-subtitle karmsthan-tagline">RIGHT PEOPLE. BRIGHTER FUTURES.</div>
-    </div>
-  </div>
+  </div></div>
 
   <div class="header-right">
     <div class="status">
