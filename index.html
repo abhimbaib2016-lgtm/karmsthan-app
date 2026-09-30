@@ -2983,7 +2983,14 @@ footer strong { color: #fff; }
     if (window.supabase && typeof window.supabase.createClient === "function") {
       supabaseClient = window.supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        }
       );
     } else {
       console.warn("karmsthan: Supabase browser SDK is not available.");
@@ -2997,6 +3004,9 @@ footer strong { color: #fff; }
      ========================================================= */
 
   let selectedRole = window.karmsthanSelectedRole || "";
+  try {
+    selectedRole = selectedRole || localStorage.getItem("karmsthanSelectedRole") || "";
+  } catch (_) {}
   let authMode = "login";
 
 
@@ -3218,7 +3228,14 @@ const { data, error } =
 
           if (data.user) {
 
-            await loadCurrentUser();
+            window.karmsthanSelectedRole = selectedRole;
+            try {
+              localStorage.setItem("karmsthanSelectedRole", selectedRole);
+            } catch (_) {}
+
+            // Use the authenticated user returned by Supabase directly.
+            // Avoid a second auth.getUser() call during the login flow.
+            await loadCurrentUser(data.user);
 
           }
 
@@ -3259,9 +3276,24 @@ const { data, error } =
     supabaseClient.auth.getSession()
       .then(({ data }) => {
         if (data?.session?.user) {
-          loadCurrentUser(data.session.user).catch(error => {
+          const restoredUser = data.session.user;
+          const restoredRole = restoredUser.user_metadata?.role || "";
+          if (restoredRole) {
+            selectedRole = restoredRole;
+            window.karmsthanSelectedRole = restoredRole;
+            try {
+              localStorage.setItem("karmsthanSelectedRole", restoredRole);
+            } catch (_) {}
+          }
+
+          loadCurrentUser(restoredUser).catch(error => {
             console.error("Session restore error:", error);
-            showMessage(error.message || "Unable to open your karmsthan workspace.", "error");
+            document.getElementById("landingView")?.classList.add("hidden");
+            document.getElementById("dashboardView")?.classList.remove("hidden");
+            const subtitle = document.getElementById("welcomeSubtitle");
+            if (subtitle) {
+              subtitle.textContent = "Signed in, but your workspace could not be loaded yet. Please refresh once.";
+            }
           });
         }
       })
