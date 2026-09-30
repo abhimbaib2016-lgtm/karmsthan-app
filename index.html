@@ -1198,7 +1198,7 @@
 
   <div class="role-grid">
 
-        <a href="?role=Employer#authPanel" class="role-card role-card-link" data-role="Employer" onclick="window.karmsthanRoleFallback('Employer', this); if (typeof selectRole === 'function') selectRole('Employer', this); return false;">
+        <a href="?role=Employer#authPanel" class="role-card role-card-link" data-role="Employer" onclick="if (window.karmsthanRoleFallback) window.karmsthanRoleFallback('Employer', this); if (typeof selectRole === 'function') selectRole('Employer', this);">
           <div class="role-icon">🏢</div>
 
           <h3>Employer</h3>
@@ -1214,7 +1214,7 @@
         </a>
 
 
-        <a href="?role=Recruiter#authPanel" class="role-card role-card-link" data-role="Recruiter" onclick="window.karmsthanRoleFallback('Recruiter', this); if (typeof selectRole === 'function') selectRole('Recruiter', this); return false;">
+        <a href="?role=Recruiter#authPanel" class="role-card role-card-link" data-role="Recruiter" onclick="if (window.karmsthanRoleFallback) window.karmsthanRoleFallback('Recruiter', this); if (typeof selectRole === 'function') selectRole('Recruiter', this);">
           <div class="role-icon">👥</div>
 
           <h3>Recruiter</h3>
@@ -1230,7 +1230,7 @@
         </a>
 
 
-        <a href="?role=Candidate#authPanel" class="role-card role-card-link" data-role="Candidate" onclick="window.karmsthanRoleFallback('Candidate', this); if (typeof selectRole === 'function') selectRole('Candidate', this); return false;">
+        <a href="?role=Candidate#authPanel" class="role-card role-card-link" data-role="Candidate" onclick="if (window.karmsthanRoleFallback) window.karmsthanRoleFallback('Candidate', this); if (typeof selectRole === 'function') selectRole('Candidate', this);">
           <div class="role-icon">🎯</div>
 
           <h3>Candidate</h3>
