@@ -2961,7 +2961,7 @@ footer strong { color: #fff; }
 
 <!-- Supabase JavaScript client -->
 <!-- Use a pinned UMD build for reliable browser loading. -->
-<script src="https://unpkg.com/@supabase/supabase-js@2.112.4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2.112.4/dist/umd/supabase.min.js'"></script>
 
 <script>
 
@@ -3089,6 +3089,14 @@ footer strong { color: #fff; }
       event.preventDefault();
 
       clearMessage();
+
+      if (!supabaseClient) {
+        showMessage(
+          "karmsthan authentication is not ready. Please refresh this page once and try again.",
+          "error"
+        );
+        return;
+      }
 
       const email =
         document
@@ -3243,6 +3251,16 @@ const { data, error } =
 
     });
 
+
+  // Mobile/browser recovery: restore the Supabase session whenever the
+  // page becomes visible again (e.g. after password-manager/app switching).
+  if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        loadCurrentUser().catch(error => console.error("Session restore error:", error));
+      }
+    });
+  }
 
   /* =========================================================
      LOAD CURRENT USER
