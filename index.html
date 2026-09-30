@@ -192,6 +192,18 @@
       border-color: #3949ab;
       box-shadow: 0 0 0 3px rgba(57, 73, 171, .10);
     }
+    /* Native navigation fallback for role selection.
+       Keeps the role picker usable even if browser JavaScript is blocked. */
+    .role-card-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .auth-panel:target {
+      display: block !important;
+    }
+
 
     .role-icon {
       width: 48px;
@@ -1167,11 +1179,26 @@
       panel.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
+
+  // Recover role selection from the native-link fallback after a full-page navigation.
+  (function () {
+    const role = new URLSearchParams(window.location.search).get("role");
+    if (!role) return;
+    const allowed = ["Employer", "Recruiter", "Candidate"];
+    if (!allowed.includes(role)) return;
+
+    window.addEventListener("DOMContentLoaded", function () {
+      const card = Array.from(document.querySelectorAll(".role-card"))
+        .find(el => el.getAttribute("data-role") === role);
+      window.karmsthanRoleFallback(role, card);
+      history.replaceState({}, "", window.location.pathname + "#authPanel");
+    });
+  })();
 </script>
 
   <div class="role-grid">
 
-        <div class="role-card" onclick="window.karmsthanRoleFallback('Employer', this); if (typeof selectRole === 'function') selectRole('Employer', this);">
+        <a href="?role=Employer#authPanel" class="role-card role-card-link" data-role="Employer" onclick="window.karmsthanRoleFallback('Employer', this); if (typeof selectRole === 'function') selectRole('Employer', this); return false;">
           <div class="role-icon">🏢</div>
 
           <h3>Employer</h3>
@@ -1187,7 +1214,7 @@
         </div>
 
 
-        <div class="role-card" onclick="window.karmsthanRoleFallback('Recruiter', this); if (typeof selectRole === 'function') selectRole('Recruiter', this);">
+        <a href="?role=Recruiter#authPanel" class="role-card role-card-link" data-role="Recruiter" onclick="window.karmsthanRoleFallback('Recruiter', this); if (typeof selectRole === 'function') selectRole('Recruiter', this); return false;">
           <div class="role-icon">👥</div>
 
           <h3>Recruiter</h3>
@@ -1203,7 +1230,7 @@
         </div>
 
 
-        <div class="role-card" onclick="window.karmsthanRoleFallback('Candidate', this); if (typeof selectRole === 'function') selectRole('Candidate', this);">
+        <a href="?role=Candidate#authPanel" class="role-card role-card-link" data-role="Candidate" onclick="window.karmsthanRoleFallback('Candidate', this); if (typeof selectRole === 'function') selectRole('Candidate', this); return false;">
           <div class="role-icon">🎯</div>
 
           <h3>Candidate</h3>
@@ -1216,7 +1243,7 @@
           <div class="role-action">
             Continue as Candidate →
           </div>
-        </div>
+        </a>
 
       </div>
 
