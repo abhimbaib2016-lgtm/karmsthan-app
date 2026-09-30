@@ -1631,7 +1631,7 @@
         <div class="extract-actions">
           <button type="button" class="primary-btn" onclick="extractResumeProfile()">Extract profile</button>
           <button type="button" class="secondary-btn" onclick="clearResumeInput()" style="width:auto;padding:9px 15px;">Clear</button>
-          <span class="extract-hint">Browser-side extraction V1 · file is not uploaded or stored</span>
+          <span class="extract-hint">Browser-side extraction V1 · optional private resume storage</span>
         </div>
         <div class="message" id="resumeExtractMessage"></div>
       </div>
@@ -3897,7 +3897,7 @@ async function createCandidate(event) {
         : null;
 
 
-    const { error } =
+    const { data: savedCandidate, error } =
       await supabaseClient
         .from("candidates")
         .insert({
@@ -3923,27 +3923,71 @@ async function createCandidate(event) {
               : null,
           skills: skills,
           education: education
-        });
+        })
+        .select("id")
+        .single();
 
 
     if (error) {
       throw error;
     }
 
+    const resumeFile = document.getElementById("resumeFileInput")?.files?.[0];
+    let resumeStorageMessage = "";
+
+    if (resumeFile && savedCandidate?.id) {
+      try {
+        const safeName = resumeFile.name
+          .replace(/[^a-zA-Z0-9._-]/g, "_")
+          .slice(-140);
+
+        const resumePath =
+          companyId + "/" +
+          savedCandidate.id + "/" +
+          crypto.randomUUID() + "-" +
+          safeName;
+
+        const { error: resumeUploadError } =
+          await supabaseClient.storage
+            .from("resumes")
+            .upload(resumePath, resumeFile, {
+              cacheControl: "3600",
+              contentType: resumeFile.type || "application/octet-stream",
+              upsert: false
+            });
+
+        if (resumeUploadError) {
+          console.error("Resume upload error:", resumeUploadError);
+          resumeStorageMessage =
+            " Candidate saved, but the resume was not stored. Configure the private “resumes” Storage bucket and policies.";
+        } else {
+          resumeStorageMessage =
+            " Resume securely stored in the private resume vault.";
+        }
+      } catch (resumeError) {
+        console.error("Resume storage error:", resumeError);
+        resumeStorageMessage =
+          " Candidate saved, but resume storage needs configuration.";
+      }
+    }
 
     if (message) {
-
       message.textContent =
-        "Candidate added successfully.";
+        "Candidate added successfully." + resumeStorageMessage;
 
       message.className =
-        "message show success";
+        resumeStorageMessage && resumeStorageMessage.includes("not stored")
+          ? "message show"
+          : "message show success";
     }
 
 
     document
       .getElementById("createCandidateForm")
       ?.reset();
+
+    const resumeFileName = document.getElementById("resumeFileName");
+    if (resumeFileName) resumeFileName.textContent = "No file selected";
 
 
     await loadCandidates();
