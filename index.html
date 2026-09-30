@@ -1871,53 +1871,14 @@
 
 
   <!-- CANDIDATE LIST -->
-
-  <div
-    id="candidateListContainer"
-    style="
-      border:1px solid #e6e9ef;
-      border-radius:12px;
-      padding:20px;
-      background:#fff;
-    "
-  >
-
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:15px;
-    ">
-
-      <strong>Your candidates</strong>
-
-      <span
-        id="candidateTotalCount"
-        style="
-          color:#7a8499;
-          font-size:12px;
-        "
-      >
-        0 total
-      </span>
-
+  <div id="candidateListContainer" style="border:1px solid #e6e9ef;border-radius:12px;padding:20px;background:#fff;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:15px;">
+      <div><strong>Your candidates</strong><span id="candidateTotalCount" style="color:#7a8499;font-size:12px;margin-left:8px;">0 total</span></div>
+      <input id="candidateSearchInput" type="search" placeholder="Search name, title, company, skills..." aria-label="Search candidates" oninput="filterCandidateDirectory()" style="width:min(360px,100%);height:40px;border:1px solid #dfe3eb;border-radius:10px;padding:0 12px;outline:none;font-size:12px;background:#fff;">
     </div>
-
-
-    <div id="candidateListEmpty">
-
-      <div style="
-        color:#7a8499;
-        font-size:13px;
-      ">
-        No candidates added yet.
-        Add your first candidate to begin.
-      </div>
-
-    </div>
-
+    <div id="candidateListEmpty" style="color:#7a8499;font-size:13px;">No candidates added yet. Add your first candidate to begin.</div>
+    <div id="candidateListResults"></div>
   </div>
-
 </div> </div>
 <!-- JOB MANAGEMENT WORKSPACE -->
 
