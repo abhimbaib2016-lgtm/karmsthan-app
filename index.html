@@ -4553,24 +4553,47 @@ function renderApplicationPipeline(applications) {
   }).join("");
 }
 
+function normalizeMatchText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/c\+\+/g, "cplusplus")
+    .replace(/c#/g, "csharp")
+    .replace(/\.net/g, "dotnet")
+    .replace(/node\.js/g, "nodejs")
+    .replace(/react\.js/g, "react")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function skillMatchesJob(skill, normalizedJobText) {
+  const normalizedSkill = normalizeMatchText(skill);
+  if (!normalizedSkill || normalizedSkill.length < 2) return false;
+
+  const escaped = normalizedSkill.replace(/[.*+?^()|[\\]\\]/g, "\\$&");
+  const pattern = new RegExp("(^|\\\\s)" + escaped + "(?=\\\\s|$)", "i");
+  return pattern.test(" " + normalizedJobText + " ");
+}
+
 function calculateHiringReadiness(job, candidate) {
   let score = 50;
   const reasons = [];
   const concerns = [];
 
-  const jobText = String(job?.jd_text || "").toLowerCase();
+  const normalizedJobText = normalizeMatchText(job?.jd_text);
   const candidateSkills = Array.isArray(candidate?.skills)
-    ? candidate.skills.map(skill => String(skill).toLowerCase().trim()).filter(Boolean)
+    ? candidate.skills.map(skill => String(skill).trim()).filter(Boolean)
     : [];
 
-  if (candidateSkills.length) {
-    const matched = candidateSkills.filter(skill => skill.length > 1 && jobText.includes(skill));
-    if (matched.length) {
-      score += Math.min(30, matched.length * 7);
-      reasons.push("Skills found in the candidate profile: " + matched.slice(0, 5).join(", ") + ".");
-    } else {
-      concerns.push("No entered candidate skill was found verbatim in the job description.");
-    }
+  const matchedSkills = candidateSkills.filter(skill =>
+    skillMatchesJob(skill, normalizedJobText)
+  );
+
+  if (matchedSkills.length) {
+    score += Math.min(30, matchedSkills.length * 6);
+    reasons.push("Matched skills: " + matchedSkills.slice(0, 6).join(", ") + ".");
+  } else if (candidateSkills.length) {
+    concerns.push("No listed candidate skill matched the job description using normalized skill matching.");
   } else {
     concerns.push("Candidate skills are not yet populated.");
   }
@@ -4605,8 +4628,18 @@ function calculateHiringReadiness(job, candidate) {
     }
   }
 
+  const noticeDays = Number(candidate?.notice_period_days);
+  if (Number.isFinite(noticeDays)) {
+    if (noticeDays <= 30) {
+      score += 2;
+      reasons.push("Notice period is 30 days or less.");
+    } else if (noticeDays > 90) {
+      concerns.push("Notice period is longer than 90 days.");
+    }
+  }
+
   const readiness = Math.max(0, Math.min(100, Math.round(score)));
-  return { score: readiness, reasons, concerns };
+  return { score: readiness, reasons, concerns, matchedSkills };
 }
 
 function renderApplications(applications, jobMap, candidateMap) {
