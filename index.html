@@ -2877,11 +2877,24 @@ async function loadHiringIntelligence(showErrors = false) {
   if (!list) return;
   try {
     const { company } = await getCurrentCompany();
-    const [{ data: jobs, error: jobsError }, { data: candidates, error: candidatesError }, { data: applications, error: applicationsError }] = await Promise.all([
+    const [{ data: jobs, error: jobsError }, { data: candidates, error: candidatesError }] = await Promise.all([
       supabaseClient.from("jobs").select("id,title,jd_text,experience_min,experience_max,salary_min,salary_max,currency,status").eq("company_id", company.id),
-      supabaseClient.from("candidates").select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills").eq("company_id", company.id),
-      supabaseClient.from("applications").select("id,job_id,candidate_id,status,source,created_at").order("created_at", { ascending:false })
+      supabaseClient.from("candidates").select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills").eq("company_id", company.id)
     ]);
+    if (jobsError) throw jobsError;
+    if (candidatesError) throw candidatesError;
+
+    const jobIds = (jobs || []).map(job => job.id);
+    let applications = [];
+    if (jobIds.length) {
+      const { data, error: applicationsError } = await supabaseClient
+        .from("applications")
+        .select("id,job_id,candidate_id,status,source,created_at")
+        .in("job_id", jobIds)
+        .order("created_at", { ascending:false });
+      if (applicationsError) throw applicationsError;
+      applications = data || [];
+    }
     if (jobsError) throw jobsError;
     if (candidatesError) throw candidatesError;
     if (applicationsError) throw applicationsError;
@@ -4394,7 +4407,7 @@ async function createApplication(event) {
   }
 
   try {
-    const { user } = await getApplicationContext();
+    const { user, companyId } = await getApplicationContext();
     const jobId = document.getElementById("applicationJob")?.value;
     const candidateId = document.getElementById("applicationCandidate")?.value;
     const source = document.getElementById("applicationSource")?.value || "direct";
@@ -4402,6 +4415,14 @@ async function createApplication(event) {
     const notes = document.getElementById("applicationNotes")?.value.trim();
 
     if (!jobId || !candidateId) throw new Error("Please select both a job and a candidate.");
+
+    const [{ data: job, error: jobError }, { data: candidate, error: candidateError }] = await Promise.all([
+      supabaseClient.from("jobs").select("id").eq("id", jobId).eq("company_id", companyId).maybeSingle(),
+      supabaseClient.from("candidates").select("id").eq("id", candidateId).eq("company_id", companyId).maybeSingle()
+    ]);
+    if (jobError) throw jobError;
+    if (candidateError) throw candidateError;
+    if (!job || !candidate) throw new Error("The selected job or candidate is not part of your company workspace.");
 
     const { data: existing, error: existingError } = await supabaseClient
       .from("applications")
@@ -4469,11 +4490,17 @@ async function loadApplications() {
     const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
     const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
 
-    const { data: applications, error } = await supabaseClient
-      .from("applications")
-      .select("id,job_id,candidate_id,status,source,created_at,updated_at,notes")
-      .order("created_at", { ascending: false });
-    if (error) throw error;
+    const jobIds = (jobs || []).map(job => job.id);
+    let applications = [];
+    if (jobIds.length) {
+      const { data, error } = await supabaseClient
+        .from("applications")
+        .select("id,job_id,candidate_id,status,source,created_at,updated_at,notes")
+        .in("job_id", jobIds)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      applications = data || [];
+    }
 
     const companyApplications = (applications || []).filter(app =>
       jobMap[app.job_id] && candidateMap[app.candidate_id]
