@@ -2858,7 +2858,12 @@ async function loadCurrentUser() {
       company.name +
       " · KARMSTHAN Hiring Intelligence";
 
-  loadHiringIntelligence(false);
+  await Promise.all([
+    loadJobs(),
+    loadCandidates(),
+    loadApplications(),
+    loadHiringIntelligence(false)
+  ]);
 
   window.scrollTo({
     top: 0,
@@ -3068,6 +3073,13 @@ async function createCompany(event) {
     document
       .getElementById("companySetupForm")
       ?.reset();
+
+    await Promise.all([
+      loadJobs(),
+      loadCandidates(),
+      loadApplications(),
+      loadHiringIntelligence(false)
+    ]);
 
   } catch (error) {
 
