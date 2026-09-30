@@ -2823,7 +2823,7 @@ async function loadHiringIntelligence(showErrors = false) {
       const name=row.candidate.full_name||"Unnamed candidate";
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase()||"K";
       const signal=row.readiness.reasons[0]||row.readiness.concerns[0]||"More candidate information is needed.";
-      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+'</span></div></div><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS</span></div></div>';
+      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+'</span><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;"><button type="button" class="secondary-btn" style="width:auto;padding:6px 9px;font-size:10px;" onclick="openCandidateDetails(\''+row.candidate.id+'\')">Candidate</button><button type="button" class="secondary-btn" style="width:auto;padding:6px 9px;font-size:10px;" onclick="openJobDetails(\''+row.job.id+'\')">Job</button></div></div></div><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS</span></div></div>';
     }).join("");
   } catch(error) {
     console.error("Hiring intelligence error:",error);
@@ -4523,6 +4523,10 @@ function renderApplications(applications, jobMap, candidateMap) {
               Applied to <b>${escapeHtml(job.title)}</b>
               · ${escapeHtml(candidate.current_title || "Title not specified")}
             </div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;">
+              <button type="button" class="secondary-btn" style="width:auto;padding:7px 10px;font-size:11px;" onclick="openCandidateDetails('${candidate.id}')">Open candidate</button>
+              <button type="button" class="secondary-btn" style="width:auto;padding:7px 10px;font-size:11px;" onclick="openJobDetails('${job.id}')">Open job</button>
+            </div>
           </div>
 
           <div style="display:flex;align-items:center;gap:8px;">
@@ -4676,7 +4680,7 @@ async function openCandidateDetails(candidateId){
     const skillHtml=skills.length?skills.map(s=>`<span style="display:inline-block;padding:6px 9px;margin:0 6px 6px 0;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:11px;font-weight:700;">${escapeHtml(s)}</span>`).join(""):"<span style='color:#98a2b3'>No skills added yet.</span>";
 
     const matches=(jobs||[])
-      .filter(job=>String(job.status||"").toLowerCase()!=="closed")
+      .filter(job=>String(job.status||"").toLowerCase()==="open")
       .map(job=>({job,readiness:calculateHiringReadiness(job,candidate)}))
       .sort((a,b)=>b.readiness.score-a.readiness.score)
       .slice(0,5);
