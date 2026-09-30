@@ -4761,10 +4761,38 @@ async function openJobDetails(jobId){
 async function openCandidateDetails(candidateId){
   try{
     const {companyId}=await getCurrentCandidateUser();
-    const {data:candidate,error}=await supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle();
-    if(error)throw error;if(!candidate)throw new Error("Candidate could not be found.");
+    const [{data:candidate,error:candidateError},{data:jobs,error:jobsError}] = await Promise.all([
+      supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle(),
+      supabaseClient.from("jobs").select("id,title,jd_text,experience_min,experience_max,salary_min,salary_max,currency,status,location").eq("company_id",companyId).order("created_at",{ascending:false})
+    ]);
+    if(candidateError)throw candidateError;
+    if(jobsError)throw jobsError;
+    if(!candidate)throw new Error("Candidate could not be found.");
+
     const skills=Array.isArray(candidate.skills)?candidate.skills:[];
     const skillHtml=skills.length?skills.map(s=>`<span style="display:inline-block;padding:6px 9px;margin:0 6px 6px 0;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:11px;font-weight:700;">${escapeHtml(s)}</span>`).join(""):"<span style='color:#98a2b3'>No skills added yet.</span>";
+
+    const matches=(jobs||[])
+      .filter(job=>String(job.status||"").toLowerCase()!=="closed")
+      .map(job=>({job,readiness:calculateHiringReadiness(job,candidate)}))
+      .sort((a,b)=>b.readiness.score-a.readiness.score)
+      .slice(0,5);
+
+    const matchHtml=matches.length
+      ? matches.map(({job,readiness})=>`
+        <div style="border:1px solid #e2e8f0;border-radius:12px;padding:15px;margin-top:10px;background:#fbfdff;">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+            <div>
+              <strong style="font-size:14px;">${escapeHtml(job.title)}</strong>
+              <div style="color:#7a8499;font-size:11px;margin-top:4px;">${escapeHtml(job.location||"Location not specified")}</div>
+            </div>
+            <span style="padding:5px 9px;border-radius:18px;background:#fff3eb;color:#e95e00;font-size:10px;font-weight:900;">${readiness.score}/100</span>
+          </div>
+          <div style="margin-top:9px;color:#667085;font-size:11px;line-height:1.55;">${escapeHtml(readiness.reasons.slice(0,2).join(" ") || readiness.concerns.slice(0,1).join(" ") || "Limited matching signals available.")}</div>
+          <button type="button" class="primary-btn" style="width:auto;padding:8px 12px;margin-top:11px;font-size:11px;" onclick="closeKarmsthanDetail();openApplicationForCandidate('${candidate.id}','${job.id}')">Create application</button>
+        </div>`).join("")
+      : "<div style='margin-top:10px;color:#98a2b3;font-size:12px;'>No open jobs are available for matching yet.</div>";
+
     showKarmsthanDetail(`<div class="role-badge">CANDIDATE PROFILE</div>
       <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(candidate.full_name)}</h2>
       <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(candidate.current_title||"Title not specified")} · ${escapeHtml(candidate.current_company||"Company not specified")}</p>
@@ -4777,9 +4805,23 @@ async function openCandidateDetails(candidateId){
         <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">CONTACT</div><div style="font-size:13px;line-height:1.8;">${escapeHtml(candidate.email||"Email not provided")}<br>${escapeHtml(candidate.phone||"Phone not provided")}<br>${escapeHtml(candidate.current_location||"Location not specified")}</div></div>
         <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">SKILLS</div><div style="margin-top:7px;">${skillHtml}</div></div>
       </div>
-      <div style="border-top:1px solid #e6e9ef;padding-top:20px;"><h3>KARMSTHAN intelligence</h3><p style="margin-top:7px;">This profile is ready for job matching, application tracking and Hiring Readiness analysis.</p></div>
-      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closeKarmsthanDetail();openJobManagement()">View Jobs</button>`);
+      <div style="border-top:1px solid #e6e9ef;padding-top:20px;">
+        <div class="stat-label">KARMSTHAN MATCHING</div>
+        <h3 style="margin-top:4px;">Relevant open jobs</h3>
+        <p style="margin-top:5px;">Ranked using the current explainable Hiring Readiness signals.</p>
+        <div style="margin-top:8px;">${matchHtml}</div>
+      </div>`);
   }catch(e){console.error(e);alert(e.message||"Unable to open candidate profile.");}
+}
+
+async function openApplicationForCandidate(candidateId,jobId){
+  await openApplicationManagement();
+  const jobSelect=document.getElementById("applicationJob");
+  const candidateSelect=document.getElementById("applicationCandidate");
+  if(jobSelect) jobSelect.value=jobId;
+  if(candidateSelect) candidateSelect.value=candidateId;
+  document.getElementById("createApplicationFormContainer")?.classList.remove("hidden");
+  document.getElementById("createApplicationFormContainer")?.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function hideCreateCandidateForm(){const c=document.getElementById("createCandidateFormContainer");if(c)c.classList.add("hidden");const f=document.getElementById("createCandidateForm");if(f)f.reset();const m=document.getElementById("candidateMessage");if(m){m.className="message";m.textContent="";}}
