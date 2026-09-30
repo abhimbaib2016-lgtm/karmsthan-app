@@ -1313,6 +1313,7 @@
       <div class="dashboard-title">
 
         <div class="workspace-kicker">AI-POWERED HIRING INTELLIGENCE</div>
+        <div id="workspaceIdentity" class="workspace-identity hidden" aria-label="Current workspace"></div>
 
         <h1 id="welcomeTitle">
           Welcome to KARMSTHAN
@@ -2782,6 +2783,12 @@ async function loadCurrentUser() {
 
   document.getElementById("welcomeSubtitle").textContent =
     role + " workspace · " + company.name + " · KARMSTHAN Hiring Intelligence";
+
+  const workspaceBadge = document.getElementById("workspaceIdentity");
+  if (workspaceBadge) {
+    workspaceBadge.innerHTML = `<span>${escapeHtml(company.name)}</span><span>·</span><span>${escapeHtml(membership.member_role || role)}</span>`;
+    workspaceBadge.classList.remove("hidden");
+  }
 
   await Promise.all([
     loadJobs(),
