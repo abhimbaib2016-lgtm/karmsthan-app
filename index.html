@@ -497,7 +497,8 @@
       height: 42px;
       border-radius: 12px;
       display: flex;
-      align-items: center;      justify-content: center;
+      align-items: center;
+      justify-content: center;
       background: #eef0ff;
       font-size: 19px;
       margin-bottom: 15px;
@@ -996,7 +997,8 @@
     }
 
     .workspace-panel-heading p {
-      max-width: 690px;    }
+      max-width: 690px;
+    }
 
     .workspace-panel-line {
       width: 48px;
@@ -1158,13 +1160,13 @@
     }
 
   
-    /* Exact karmsthan trademark lockup: lowercase wordmark + TM */
-    .karmsthan-brand { gap:0 !important; width:min(430px, 48vw); }
-    .karmsthan-logo-full { width:100%; max-width:430px; height:58px; overflow:hidden; display:flex; align-items:center; }
+    /* Compact karmsthan trademark lockup */
+    .karmsthan-brand { gap:0 !important; width:min(390px, 46vw); }
+    .karmsthan-logo-full { width:100%; max-width:390px; height:54px; overflow:hidden; display:flex; align-items:center; }
     .karmsthan-logo-full svg { width:100%; height:auto; display:block; }
     @media (max-width:650px) {
-      .karmsthan-brand { width:230px; }
-      .karmsthan-logo-full { height:48px; }
+      .karmsthan-brand { width:225px; }
+      .karmsthan-logo-full { height:46px; }
     }
 
   
@@ -1496,6 +1498,7 @@ main { padding-top: 42px; }
   border-color: rgba(99,91,255,.16);
   background: #fff;
 }
+
 .coming-status {
   color: var(--ks-indigo) !important;
 }
@@ -1575,8 +1578,7 @@ footer strong { color: #fff; }
 <header>
   <div class="brand karmsthan-brand">
     <div class="karmsthan-logo-full" aria-label="karmsthan trademark logo" role="img">
-      <svg viewBox="0 0 1445 390" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect width="1445" height="390" fill="#fff"/>
+      <svg viewBox="0 0 1260 390" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <g>
           <path d="M18 42H109V154L18 265Z" fill="#0b2f6b"/>
           <path d="M126 249L194 190L319 352H214Z" fill="#0b2f6b"/>
@@ -1584,9 +1586,11 @@ footer strong { color: #fff; }
           <path d="M20 365C19 294 52 245 100 208C153 167 215 137 281 85L257 135L316 105L286 168L279 143C215 195 153 239 103 287C64 324 39 350 20 365Z" fill="#ff7417"/>
           <path d="M286 85L327 73L316 105Z" fill="#ff7417"/>
         </g>
-        <text x="345" y="278" font-family="Arial, Helvetica, sans-serif" font-size="205" font-weight="700" letter-spacing="-8" fill="#0b2f6b">armsthan</text>
-        <text x="1368" y="166" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="700" fill="#0b2f6b">™</text>
-        <text x="356" y="350" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="500" letter-spacing="6" fill="#0b2f6b">RIGHT PEOPLE. BRIGHTER FUTURES.</text>
+        <text x="340" y="270" font-family="Arial, Helvetica, sans-serif" font-size="205" font-weight="700"
+          textLength="865" lengthAdjust="spacingAndGlyphs" fill="#0b2f6b">armsthan</text>
+        <text x="1208" y="158" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#0b2f6b">™</text>
+        <text x="342" y="350" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500"
+          letter-spacing="3.5" fill="#607089">RIGHT PEOPLE. BRIGHTER FUTURES.</text>
       </svg>
     </div>
   </div></div>
@@ -1994,7 +1998,8 @@ footer strong { color: #fff; }
 
       <div class="coming-grid">
 
-        <div class="coming-item" id="hiringReadinessCard">          <div class="coming-icon">🎯</div>
+        <div class="coming-item" id="hiringReadinessCard">
+          <div class="coming-icon">🎯</div>
           <strong>Hiring Readiness</strong>
           <span>
             Candidate-to-job alignment, explainable fit signals and AI-assisted hiring decisions.
@@ -2493,7 +2498,8 @@ footer strong { color: #fff; }
 
     <h3>Create a new job</h3>
 
-    <p>      Add the hiring requirement you want karmsthan to analyze.
+    <p>
+      Add the hiring requirement you want karmsthan to analyze.
     </p>
 
 
@@ -2961,7 +2967,7 @@ footer strong { color: #fff; }
 
 <!-- Supabase JavaScript client -->
 <!-- Use a pinned UMD build for reliable browser loading. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2.112.4/dist/umd/supabase.min.js'"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2.112.4"></script>
 
 <script>
 
@@ -2983,14 +2989,7 @@ footer strong { color: #fff; }
     if (window.supabase && typeof window.supabase.createClient === "function") {
       supabaseClient = window.supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY,
-        {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-          }
-        }
+        SUPABASE_PUBLISHABLE_KEY
       );
     } else {
       console.warn("karmsthan: Supabase browser SDK is not available.");
@@ -2999,14 +2998,12 @@ footer strong { color: #fff; }
     console.error("karmsthan: Supabase initialization failed.", error);
   }
 
+
   /* =========================================================
      APPLICATION STATE
      ========================================================= */
 
   let selectedRole = window.karmsthanSelectedRole || "";
-  try {
-    selectedRole = selectedRole || localStorage.getItem("karmsthanSelectedRole") || "";
-  } catch (_) {}
   let authMode = "login";
 
 
@@ -3100,14 +3097,6 @@ footer strong { color: #fff; }
 
       clearMessage();
 
-      if (!supabaseClient) {
-        showMessage(
-          "karmsthan authentication is not ready. Please refresh this page once and try again.",
-          "error"
-        );
-        return;
-      }
-
       const email =
         document
           .getElementById("email")
@@ -3198,7 +3187,7 @@ const { data, error } =
               "success"
             );
 
-            await loadCurrentUser(data?.user || null);
+            await loadCurrentUser();
 
           }
 
@@ -3228,14 +3217,7 @@ const { data, error } =
 
           if (data.user) {
 
-            window.karmsthanSelectedRole = selectedRole;
-            try {
-              localStorage.setItem("karmsthanSelectedRole", selectedRole);
-            } catch (_) {}
-
-            // Use the authenticated user returned by Supabase directly.
-            // Avoid a second auth.getUser() call during the login flow.
-            await loadCurrentUser(data.user);
+            await loadCurrentUser();
 
           }
 
@@ -3269,57 +3251,22 @@ const { data, error } =
     });
 
 
-  // Restore an existing session when the page loads without calling
-  // auth.getUser() from inside onAuthStateChange (which can block on mobile
-  // browsers because Supabase holds an internal auth lock during the event).
-  if (supabaseClient) {
-    supabaseClient.auth.getSession()
-      .then(({ data }) => {
-        if (data?.session?.user) {
-          const restoredUser = data.session.user;
-          const restoredRole = restoredUser.user_metadata?.role || "";
-          if (restoredRole) {
-            selectedRole = restoredRole;
-            window.karmsthanSelectedRole = restoredRole;
-            try {
-              localStorage.setItem("karmsthanSelectedRole", restoredRole);
-            } catch (_) {}
-          }
-
-          loadCurrentUser(restoredUser).catch(error => {
-            console.error("Session restore error:", error);
-            document.getElementById("landingView")?.classList.add("hidden");
-            document.getElementById("dashboardView")?.classList.remove("hidden");
-            const subtitle = document.getElementById("welcomeSubtitle");
-            if (subtitle) {
-              subtitle.textContent = "Signed in, but your workspace could not be loaded yet. Please refresh once.";
-            }
-          });
-        }
-      })
-      .catch(error => console.error("Session restore failed:", error));
-  }
-
   /* =========================================================
      LOAD CURRENT USER
      ========================================================= */
 
-async function loadCurrentUser(currentUser = null) {
+async function loadCurrentUser() {
 
-  let user = currentUser;
+  const {
+    data,
+    error
+  } = await supabaseClient.auth.getUser();
 
-  if (!user) {
-    const { data, error } = await supabaseClient.auth.getUser();
-    if (error) {
-      console.error("Unable to read authenticated user:", error);
-      throw new Error(error.message || "Unable to read your authenticated session.");
-    }
-    user = data?.user;
+  if (error || !data.user) {
+    return;
   }
 
-  if (!user) {
-    throw new Error("Your session could not be restored. Please sign in again.");
-  }
+  const user = data.user;
 
   const metadata = user.user_metadata || {};
 
@@ -3551,6 +3498,7 @@ async function createCompany(event) {
 
   const companyWebsite =
     document.getElementById("companyWebsite").value.trim();
+
   const companyIndustry =
     document.getElementById("companyIndustry").value.trim();
 
@@ -4051,6 +3999,7 @@ async function createJob(event) {
       document.getElementById("jobStatus")
         .value;
 
+
     if (!title) {
       throw new Error("Please enter a job title.");
     }
@@ -4550,6 +4499,7 @@ async function createCandidate(event) {
     if (error) {
       throw error;
     }
+
     const resumeFile = document.getElementById("resumeFileInput")?.files?.[0];
     let resumeStorageMessage = "";
 
@@ -5049,3 +4999,386 @@ async function loadApplications() {
       .from("candidates")
       .select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills")
       .eq("company_id", companyId);
+    if (candidatesError) throw candidatesError;
+
+    const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
+    const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
+
+    const { data: applications, error } = await supabaseClient
+      .from("applications")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    const companyApplications = (applications || []).filter(app =>
+      jobMap[app.job_id] && candidateMap[app.candidate_id]
+    );
+
+    updateApplicationsCount(companyApplications.length);
+    renderApplicationPipeline(companyApplications);
+
+    if (!companyApplications.length) {
+      if (emptyState) {
+        emptyState.classList.remove("hidden");
+        emptyState.textContent = "No applications yet. Create the first job-candidate application.";
+      }
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add("hidden");
+    renderApplications(companyApplications, jobMap, candidateMap);
+
+  } catch (error) {
+    console.error("Load applications error:", error);
+    if (emptyState) {
+      emptyState.textContent = error.message || "Unable to load applications right now.";
+      emptyState.classList.remove("hidden");
+    }
+    updateApplicationsCount(0);
+  }
+}
+
+function updateApplicationsCount(count) {
+  const element = document.getElementById("applicationsCount");
+  if (element) element.textContent = count;
+  const total = document.getElementById("applicationTotalCount");
+  if (total) total.textContent = count + " total";
+}
+
+function renderApplicationPipeline(applications) {
+  const container = document.getElementById("applicationPipelineSummary");
+  if (!container) return;
+
+  const stages = ["submitted", "screening", "applied", "shortlisted", "interview", "selected", "offer", "accepted", "joined", "rejected"];
+  container.innerHTML = stages.map(stage => {
+    const count = applications.filter(app => app.status === stage).length;
+    return `
+      <div style="border:1px solid #e6e9ef;border-radius:10px;padding:13px;background:#fafbff;">
+        <div class="stat-label">${escapeHtml(applicationStatusLabel(stage))}</div>
+        <strong style="font-size:20px;">${count}</strong>
+      </div>
+    `;
+  }).join("");
+}
+
+function calculateHiringReadiness(job, candidate) {
+  let score = 50;
+  const reasons = [];
+  const concerns = [];
+
+  const jobText = String(job?.jd_text || "").toLowerCase();
+  const candidateSkills = Array.isArray(candidate?.skills)
+    ? candidate.skills.map(skill => String(skill).toLowerCase().trim()).filter(Boolean)
+    : [];
+
+  if (candidateSkills.length) {
+    const matched = candidateSkills.filter(skill => skill.length > 1 && jobText.includes(skill));
+    if (matched.length) {
+      score += Math.min(30, matched.length * 7);
+      reasons.push("Skills found in the candidate profile: " + matched.slice(0, 5).join(", ") + ".");
+    } else {
+      concerns.push("No entered candidate skill was found verbatim in the job description.");
+    }
+  } else {
+    concerns.push("Candidate skills are not yet populated.");
+  }
+
+  const minExp = Number(job?.experience_min);
+  const maxExp = Number(job?.experience_max);
+  const candidateExp = Number(candidate?.total_experience);
+
+  if (Number.isFinite(candidateExp) && Number.isFinite(minExp)) {
+    if (candidateExp >= minExp && (!Number.isFinite(maxExp) || candidateExp <= maxExp)) {
+      score += 12;
+      reasons.push("Experience falls within the configured job range.");
+    } else if (candidateExp >= minExp) {
+      score += 7;
+      concerns.push("Experience is above the configured maximum range.");
+    } else {
+      concerns.push("Experience is below the configured minimum.");
+    }
+  } else {
+    concerns.push("Experience information is incomplete.");
+  }
+
+  const maxSalary = Number(job?.salary_max);
+  const expectedSalary = Number(candidate?.expected_salary);
+
+  if (Number.isFinite(expectedSalary) && Number.isFinite(maxSalary) && maxSalary > 0) {
+    if (expectedSalary <= maxSalary) {
+      score += 4;
+      reasons.push("Expected salary is within the configured maximum.");
+    } else {
+      concerns.push("Expected salary is above the configured job maximum.");
+    }
+  }
+
+  const readiness = Math.max(0, Math.min(100, Math.round(score)));
+  return { score: readiness, reasons, concerns };
+}
+
+function renderApplications(applications, jobMap, candidateMap) {
+  const container = document.getElementById("applicationListContainer");
+  if (!container) return;
+
+  let html = "";
+
+  applications.forEach(application => {
+    const job = jobMap[application.job_id];
+    const candidate = candidateMap[application.candidate_id];
+    const readiness = calculateHiringReadiness(job, candidate);
+
+    html += `
+      <div style="border:1px solid #e6e9ef;border-radius:14px;padding:18px;margin-bottom:12px;background:#fff;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;">
+          <div>
+            <strong style="font-size:16px;">${escapeHtml(candidate.full_name)}</strong>
+            <div style="margin-top:6px;color:#7a8499;font-size:12px;">
+              Applied to <b>${escapeHtml(job.title)}</b>
+              · ${escapeHtml(candidate.current_title || "Title not specified")}
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="padding:6px 10px;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:10px;font-weight:800;">
+              ${escapeHtml(applicationStatusLabel(application.status))}
+            </span>
+
+            <select aria-label="Application status" onchange="updateApplicationStatus('${application.id}', this.value)" style="height:34px;border:1px solid #dfe3eb;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;">
+              ${APPLICATION_STATUSES.map(stage =>
+                `<option value="${stage}" ${application.status === stage ? "selected" : ""}>${escapeHtml(applicationStatusLabel(stage))}</option>`
+              ).join("")}
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px;">
+          <div class="stat-card"><div class="stat-label">READINESS</div><strong style="font-size:21px;">${readiness.score}/100</strong></div>
+          <div class="stat-card"><div class="stat-label">EXPERIENCE</div><strong>${candidate.total_experience != null ? escapeHtml(candidate.total_experience + " yrs") : "—"}</strong></div>
+          <div class="stat-card"><div class="stat-label">NOTICE</div><strong>${candidate.notice_period_days != null ? escapeHtml(candidate.notice_period_days + " days") : "—"}</strong></div>
+          <div class="stat-card"><div class="stat-label">EXPECTED SALARY</div><strong>${candidate.expected_salary != null ? escapeHtml("₹" + Number(candidate.expected_salary).toLocaleString("en-IN")) : "—"}</strong></div>
+        </div>
+
+        <div style="margin-top:15px;border-top:1px solid #e6e9ef;padding-top:14px;">
+          <strong style="font-size:12px;">Why it matches</strong>
+          <p style="margin-top:5px;color:#667085;font-size:12px;line-height:1.6;">
+            ${escapeHtml(readiness.reasons.join(" ") || "Add candidate skills and job requirements for stronger matching signals.")}
+          </p>
+          ${readiness.concerns.length ? `
+            <strong style="display:block;margin-top:9px;font-size:12px;">Potential concerns</strong>
+            <p style="margin-top:5px;color:#667085;font-size:12px;line-height:1.6;">
+              ${escapeHtml(readiness.concerns.join(" "))}
+            </p>
+          ` : ""}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML =
+    '<div style="margin-bottom:15px;color:#7a8499;font-size:12px;">' +
+    applications.length + " application" + (applications.length === 1 ? "" : "s") +
+    "</div>" + html;
+}
+
+async function updateApplicationStatus(applicationId, status) {
+  try {
+    const { error } = await supabaseClient
+      .from("applications")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", applicationId);
+
+    if (error) throw error;
+    await loadApplications();
+
+  } catch (error) {
+    console.error("Update application status error:", error);
+    alert(error.message || "Unable to update application status.");
+    await loadApplications();
+  }
+}
+
+document.getElementById("createApplicationForm")?.addEventListener("submit", createApplication);
+
+
+function showkarmsthanDetail(html){
+  closekarmsthanDetail();
+  const m=document.createElement("div");
+  m.id="karmsthanDetailModal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(15,23,42,.52);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;";
+  m.innerHTML=`<div style="width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:28px;box-shadow:0 25px 70px rgba(15,23,42,.25);">
+    <div style="display:flex;justify-content:flex-end"><button type="button" onclick="closekarmsthanDetail()" style="width:36px;height:36px;border:1px solid #e2e6ee;border-radius:50%;background:#fff;font-size:20px;">×</button></div>${html}</div>`;
+  m.addEventListener("click",e=>{if(e.target===m)closekarmsthanDetail()});
+  document.body.appendChild(m);
+}
+
+async function openJobDetails(jobId){
+  try{
+    const {company}=await getCurrentCompany();
+    const {data:job,error}=await supabaseClient.from("jobs").select("*").eq("id",jobId).eq("company_id",company.id).maybeSingle();
+    if(error)throw error;if(!job)throw new Error("Job could not be found.");
+    const exp=job.experience_min!=null||job.experience_max!=null?`${job.experience_min??"—"}–${job.experience_max??"—"} years`:"Not specified";
+    const sal=job.salary_min!=null||job.salary_max!=null?`${job.currency||"INR"} ${job.salary_min??"—"}–${job.salary_max??"—"}`:"Not specified";
+    showkarmsthanDetail(`<div class="role-badge">JOB DETAILS</div>
+      <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(job.title)}</h2>
+      <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(job.department||"Department not specified")} · ${escapeHtml(job.location||"Location not specified")}</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-label">STATUS</div><b>${escapeHtml((job.status||"draft").toUpperCase())}</b></div>
+        <div class="stat-card"><div class="stat-label">EXPERIENCE</div><b>${escapeHtml(exp)}</b></div>
+        <div class="stat-card"><div class="stat-label">SALARY</div><b>${escapeHtml(sal)}</b></div>
+      </div>
+      <h3 style="margin-bottom:8px;">Job description</h3>
+      <div style="white-space:pre-wrap;background:#fafbff;border:1px solid #e6e9ef;border-radius:12px;padding:18px;color:#475467;font-size:13px;line-height:1.7;">${escapeHtml(job.jd_text||"No job description provided.")}</div>
+      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closekarmsthanDetail();openCandidateManagement()">Manage Candidates</button>`);
+  }catch(e){console.error(e);alert(e.message||"Unable to open job details.");}
+}
+
+async function openCandidateDetails(candidateId){
+  try{
+    const {companyId}=await getCurrentCandidateUser();
+    const {data:candidate,error}=await supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle();
+    if(error)throw error;if(!candidate)throw new Error("Candidate could not be found.");
+    const skills=Array.isArray(candidate.skills)?candidate.skills:[];
+    const skillHtml=skills.length?skills.map(s=>`<span style="display:inline-block;padding:6px 9px;margin:0 6px 6px 0;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:11px;font-weight:700;">${escapeHtml(s)}</span>`).join(""):"<span style='color:#98a2b3'>No skills added yet.</span>";
+    showkarmsthanDetail(`<div class="role-badge">CANDIDATE PROFILE</div>
+      <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(candidate.full_name)}</h2>
+      <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(candidate.current_title||"Title not specified")} · ${escapeHtml(candidate.current_company||"Company not specified")}</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-label">EXPERIENCE</div><b>${escapeHtml(candidate.total_experience!=null?candidate.total_experience+" years":"Not specified")}</b></div>
+        <div class="stat-card"><div class="stat-label">NOTICE</div><b>${escapeHtml(candidate.notice_period_days!=null?candidate.notice_period_days+" days":"Not specified")}</b></div>
+        <div class="stat-card"><div class="stat-label">EXPECTED SALARY</div><b>${escapeHtml(candidate.expected_salary!=null?"INR "+Number(candidate.expected_salary).toLocaleString("en-IN"):"Not specified")}</b></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
+        <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">CONTACT</div><div style="font-size:13px;line-height:1.8;">${escapeHtml(candidate.email||"Email not provided")}<br>${escapeHtml(candidate.phone||"Phone not provided")}<br>${escapeHtml(candidate.current_location||"Location not specified")}</div></div>
+        <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">SKILLS</div><div style="margin-top:7px;">${skillHtml}</div></div>
+      </div>
+      <div style="border-top:1px solid #e6e9ef;padding-top:20px;"><h3>karmsthan intelligence</h3><p style="margin-top:7px;">This profile is ready for job matching, application tracking and Hiring Readiness analysis.</p></div>
+      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closekarmsthanDetail();openJobManagement()">View Jobs</button>`);
+  }catch(e){console.error(e);alert(e.message||"Unable to open candidate profile.");}
+}
+
+function hideCreateCandidateForm(){const c=document.getElementById("createCandidateFormContainer");if(c)c.classList.add("hidden");const f=document.getElementById("createCandidateForm");if(f)f.reset();const m=document.getElementById("candidateMessage");if(m){m.className="message";m.textContent="";}}
+
+async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    selectedRole = "";
+
+    document
+      .getElementById("dashboardView")
+      .classList.add("hidden");
+
+    document
+      .getElementById("landingView")
+      .classList.remove("hidden");
+
+    document
+      .querySelectorAll(".role-card")
+      .forEach(card => {
+        card.classList.remove("selected");
+      });
+
+    document
+      .getElementById("authPanel")
+      .classList.add("hidden");
+
+    document
+      .getElementById("authForm")
+      .reset();
+
+    switchMode("login");
+
+  }
+
+
+  /* =========================================================
+     MESSAGE HELPERS
+     ========================================================= */
+
+  function showMessage(message, type) {
+
+    const element =
+      document.getElementById("message");
+
+    element.textContent =
+      message;
+
+    element.className =
+      "message show " + type;
+
+  }
+
+
+  function clearMessage() {
+
+    const element =
+      document.getElementById("message");
+
+    element.textContent =
+      "";
+
+    element.className =
+      "message";
+
+  }
+
+
+  /* =========================================================
+     CHECK EXISTING SESSION
+     ========================================================= */
+
+  async function checkSession() {
+
+    if (!supabaseClient) {
+      console.warn("karmsthan: Auth unavailable; landing page remains usable.");
+      return;
+    }
+
+    const {
+      data
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (data.session) {
+
+      await loadCurrentUser();
+
+    }
+
+  }
+
+
+  /* =========================================================
+     AUTH STATE LISTENER
+     ========================================================= */
+
+  if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
+
+        if (
+          event === "SIGNED_IN" &&
+          session
+        ) {
+
+          await loadCurrentUser();
+
+        }
+
+      }
+    );
+  }
+
+
+  /* =========================================================
+     START APPLICATION
+     ========================================================= */
+
+  checkSession();
+
+</script>
+
+</body>
+</html>
