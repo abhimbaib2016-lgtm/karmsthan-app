@@ -803,6 +803,227 @@
       }
     }
 
+
+    /* =========================================================
+       KARMSTHAN DASHBOARD EXPERIENCE
+       Public-site-inspired product workspace styling.
+       ========================================================= */
+
+    #dashboardView {
+      animation: karmsthanFadeIn .35s ease both;
+    }
+
+    @keyframes karmsthanFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .workspace-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #e95e00;
+      background: #fff3eb;
+      border: 1px solid #ffd9c2;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .09em;
+      margin-bottom: 12px;
+    }
+
+    .workspace-kicker::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ff7417;
+      box-shadow: 0 0 0 4px rgba(255,116,23,.10);
+    }
+
+    .dashboard-top {
+      position: relative;
+      padding: 34px 0 20px;
+      margin-bottom: 0;
+    }
+
+    .dashboard-top::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: linear-gradient(90deg, #dce6f2 0%, #dce6f2 72%, transparent 100%);
+    }
+
+    .dashboard-title h1 {
+      font-weight: 800;
+      max-width: 850px;
+    }
+
+    .dashboard-title p {
+      max-width: 720px;
+      line-height: 1.7;
+    }
+
+    .workspace-nav {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      padding: 18px 0 22px;
+    }
+
+    .workspace-nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #607089;
+      border-radius: 999px;
+      padding: 9px 13px;
+      font-size: 12px;
+      font-weight: 750;
+      transition: .18s ease;
+    }
+
+    .workspace-nav button:hover {
+      color: #0b2f6b;
+      background: #edf4ff;
+    }
+
+    .workspace-nav button.active {
+      color: #0b2f6b;
+      background: #fff;
+      border-color: #d5e1ef;
+      box-shadow: 0 5px 15px rgba(18,61,104,.06);
+    }
+
+    .workspace-nav .nav-divider {
+      width: 1px;
+      height: 18px;
+      background: #d9e2ed;
+      margin: 0 4px;
+    }
+
+    .dashboard-grid {
+      margin-top: 4px;
+      gap: 16px;
+    }
+
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+      transition: .2s ease;
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #ff7417;
+      opacity: .9;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(18,61,104,.08);
+    }
+
+    #dashboardContent > .dashboard-card {
+      margin-top: 22px;
+    }
+
+    .workspace-panel-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+      margin-bottom: 6px;
+    }
+
+    .workspace-panel-kicker {
+      color: #ff7417;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      margin-bottom: 8px;
+    }
+
+    .workspace-panel-heading h3 {
+      font-size: 23px;
+      letter-spacing: -.5px;
+    }
+
+    .workspace-panel-heading p {
+      max-width: 690px;
+    }
+
+    .workspace-panel-line {
+      width: 48px;
+      height: 3px;
+      border-radius: 99px;
+      background: #ff7417;
+      margin-top: 16px;
+      margin-bottom: 3px;
+    }
+
+    .coming-item {
+      cursor: default;
+    }
+
+    .coming-item:first-child {
+      background:
+        radial-gradient(circle at 100% 0%, rgba(255,116,23,.09), transparent 130px),
+        linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .coming-item:first-child .coming-icon {
+      background: #fff3eb;
+      border-color: #ffd8c0;
+    }
+
+    .coming-item:first-child .coming-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .coming-item:first-child .coming-status::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ff7417;
+    }
+
+    @media (max-width: 650px) {
+      .dashboard-top {
+        padding-top: 24px;
+      }
+
+      .workspace-nav {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 16px;
+      }
+
+      .workspace-nav button {
+        white-space: nowrap;
+      }
+
+      .workspace-nav .nav-divider {
+        display: none;
+      }
+
+      .workspace-panel-heading {
+        display: block;
+      }
+    }
+
 </style>
 </head>
 
@@ -1020,12 +1241,14 @@
 
       <div class="dashboard-title">
 
+        <div class="workspace-kicker">AI-POWERED HIRING INTELLIGENCE</div>
+
         <h1 id="welcomeTitle">
           Welcome to KARMSTHAN
         </h1>
 
         <p id="welcomeSubtitle">
-          Your hiring intelligence workspace.
+          Your hiring intelligence workspace — connecting jobs, candidates, recruitment decisions and outcomes.
         </p>
 
       </div>
@@ -1038,6 +1261,15 @@
       </button>
 
     </div>
+
+    <nav class="workspace-nav" aria-label="KARMSTHAN workspace navigation">
+      <button type="button" class="active" onclick="document.getElementById('dashboardView').scrollIntoView({behavior:'smooth'})">Overview</button>
+      <button type="button" onclick="openJobManagement()">Jobs</button>
+      <button type="button" onclick="openCandidateManagement()">Candidates</button>
+      <button type="button" onclick="openApplicationManagement()">Applications</button>
+      <span class="nav-divider"></span>
+      <button type="button" class="active" onclick="document.getElementById('hiringReadinessCard')?.scrollIntoView({behavior:'smooth',block:'center'})">Hiring Intelligence</button>
+    </nav>
 
 
     <!-- COMPANY SETUP -->
@@ -1142,19 +1374,23 @@
 
     <div class="dashboard-card">
 
-      <h3>Your KARMSTHAN workspace</h3>
+      <div class="workspace-panel-heading">
+        <div>
+          <div class="workspace-panel-kicker">YOUR WORKSPACE</div>
+          <h3>Everything you need to hire with better intelligence.</h3>
+          <div class="workspace-panel-line"></div>
+        </div>
+      </div>
 
       <p>
-        This is the foundation of your authenticated KARMSTHAN
-        workspace. The next development stages will connect this
-        dashboard to your jobs, candidates, applications and AI
-        assessment data.
+        Move from job creation to candidate evaluation and hiring outcomes
+        inside one connected KARMSTHAN workspace.
       </p>
 
 
       <div class="coming-grid">
 
-        <div class="coming-item">
+        <div class="coming-item" id="hiringReadinessCard">
           <div class="coming-icon">🎯</div>
           <strong>Hiring Readiness</strong>
           <span>
