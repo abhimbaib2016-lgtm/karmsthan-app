@@ -4009,12 +4009,9 @@ async function loadCandidates() {
         emptyState.classList.remove("hidden");
       }
 
-      if (container) {
-        container.innerHTML = "";
-      }
-
+      window.karmsthanCandidateDirectory = [];
       updateCandidatesCount(0);
-
+      renderCandidates([]);
       return;
     }
 
@@ -4024,12 +4021,11 @@ async function loadCandidates() {
     }
 
 
-    updateCandidatesCount(
-      candidates.length
-    );
-
-
-    renderCandidates(candidates);
+    window.karmsthanCandidateDirectory = candidates || [];
+    updateCandidatesCount(candidates.length);
+    const searchInput = document.getElementById("candidateSearchInput");
+    if (searchInput) searchInput.value = "";
+    renderCandidates(candidates || []);
 
 
   } catch (error) {
@@ -4052,71 +4048,34 @@ async function loadCandidates() {
 /* Render candidates */
 
 function renderCandidates(candidates) {
-
-  const container =
-    document.getElementById("candidateListContainer");
-
+  const container = document.getElementById('candidateListResults');
   if (!container) return;
+  if (!candidates.length) { container.innerHTML = ''; return; }
+  container.innerHTML = candidates.map(candidate => {
+    const skills = Array.isArray(candidate.skills) ? candidate.skills.join(' ') : (candidate.skills || '');
+    return "<div role='button' tabindex='0' onclick=\"openCandidateDetails('"+candidate.id+"')\" style='border:1px solid #e6e9ef;border-radius:12px;padding:18px;margin-bottom:12px;background:#fff;cursor:pointer;'>" +
+      "<div style='display:flex;justify-content:space-between;gap:12px;align-items:flex-start;'><strong style='font-size:15px;'>"+escapeHtml(candidate.full_name || 'Unnamed candidate')+"</strong><span style='padding:5px 9px;border-radius:18px;background:#edf4ff;color:#0b2f6b;font-size:10px;font-weight:800;'>"+(candidate.total_experience != null ? escapeHtml(candidate.total_experience+' yrs') : 'Experience —')+"</span></div>" +
+      "<div style='margin-top:7px;color:#7a8499;font-size:12px;'>"+escapeHtml(candidate.current_title || 'Title not specified')+" · "+escapeHtml(candidate.current_company || 'Company not specified')+"</div>" +
+      "<div style='margin-top:6px;color:#7a8499;font-size:12px;'>"+escapeHtml(candidate.current_location || 'Location not specified')+" · "+escapeHtml(skills || 'Skills not specified')+"</div></div>";
+  }).join('');
+}
 
-
-  let html = "";
-
-
-  candidates.forEach(candidate => {
-
-    html += `
-      <div role="button" tabindex="0"
-        onclick="openCandidateDetails('${candidate.id}')"
-        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCandidateDetails('${candidate.id}')}"}
-        style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;margin-bottom:12px;background:#fff;cursor:pointer;transition:.15s;"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 22px rgba(30,41,90,.08)';"
-        onmouseout="this.style.transform='';this.style.boxShadow='';">
-
-        <strong style="
-          font-size:15px;
-        ">
-          ${escapeHtml(candidate.full_name)}
-        </strong>
-
-        <div style="
-          margin-top:7px;
-          color:#7a8499;
-          font-size:12px;
-        ">
-          ${escapeHtml(
-            candidate.current_title ||
-            "Title not specified"
-          )}
-          ·
-          ${escapeHtml(
-            candidate.current_company ||
-            "Company not specified"
-          )}
-        </div>
-
-        <div style="
-          margin-top:6px;
-          color:#7a8499;
-          font-size:12px;
-        ">
-          ${escapeHtml(
-            candidate.current_location ||
-            "Location not specified"
-          )}
-          ·
-          ${
-            candidate.total_experience != null
-              ? candidate.total_experience + " years"
-              : "Experience not specified"
-          }
-        </div>
-
-      </div>
-    `;
+function filterCandidateDirectory() {
+  const candidates = window.karmsthanCandidateDirectory || [];
+  const input = document.getElementById('candidateSearchInput');
+  const query = (input?.value || '').trim().toLowerCase();
+  const filtered = !query ? candidates : candidates.filter(candidate => {
+    const skills = Array.isArray(candidate.skills) ? candidate.skills.join(' ') : (candidate.skills || '');
+    return [candidate.full_name,candidate.current_title,candidate.current_company,candidate.current_location,candidate.email,candidate.phone,skills].filter(Boolean).join(' ').toLowerCase().includes(query);
   });
-
-
-  container.innerHTML = html;
+  const emptyState = document.getElementById('candidateListEmpty');
+  if (emptyState) {
+    emptyState.textContent = !candidates.length ? 'No candidates added yet. Add your first candidate to begin.' : (!filtered.length ? 'No candidates match your search.' : '');
+    emptyState.classList.toggle('hidden', Boolean(filtered.length));
+  }
+  const count = document.getElementById('candidateTotalCount');
+  if (count) count.textContent = query ? filtered.length+' of '+candidates.length+' shown' : candidates.length+' total';
+  renderCandidates(filtered);
 }
 
 
