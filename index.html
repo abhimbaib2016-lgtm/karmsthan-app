@@ -1154,6 +1154,7 @@
     <script>
   // Keep role selection available even if an external auth dependency fails to load.
   window.karmsthanRoleFallback = function(role, element) {
+    window.karmsthanSelectedRole = role;
     document.querySelectorAll(".role-card").forEach(card => card.classList.remove("selected"));
     if (element) element.classList.add("selected");
 
@@ -2446,7 +2447,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 
 <!-- Supabase JavaScript client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Use a pinned UMD build for reliable browser loading. -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.117.2"></script>
 
 <script>
 
@@ -2474,7 +2476,7 @@
      APPLICATION STATE
      ========================================================= */
 
-  let selectedRole = "";
+  let selectedRole = window.karmsthanSelectedRole || "";
   let authMode = "login";
 
 
@@ -2485,6 +2487,7 @@
   function selectRole(role, element) {
 
     selectedRole = role;
+    window.karmsthanSelectedRole = role;
 
     document
       .querySelectorAll(".role-card")
