@@ -878,12 +878,24 @@
 
 </div>
 
-        <div class="coming-item">
-          <strong>👤 Candidate Intelligence</strong>
-          <span>
-            Candidate profiles and recruitment signals.
-          </span>
-        </div>
+     <div class="coming-item">
+
+    <strong>👤 Candidate Intelligence</strong>
+
+    <span>
+        Candidate profiles and recruitment signals.
+    </span>
+
+    <button
+        type="button"
+        class="primary-btn"
+        style="margin-top:14px;width:auto;padding:10px 18px;"
+        onclick="openCandidateManagement()"
+    >
+        Manage Candidates
+    </button>
+
+</div>
 
       </div>
 
@@ -3131,7 +3143,31 @@ document
     "submit",
     createCandidate
   );
+/* =========================================================
+   OPEN CANDIDATE MANAGEMENT
+   ========================================================= */
 
+async function openCandidateManagement() {
+
+    const candidateView =
+        document.getElementById("candidateManagementView");
+
+    if (!candidateView) {
+        console.error("Candidate Management view not found.");
+        return;
+    }
+
+    candidateView.classList.remove("hidden");
+
+    candidateView.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
+    if (typeof loadCandidates === "function") {
+        await loadCandidates();
+    }
+}
 async function logout() {
 
     await supabaseClient.auth.signOut();
