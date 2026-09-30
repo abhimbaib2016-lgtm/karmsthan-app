@@ -827,7 +827,7 @@
 
       <div class="stat-card">
         <div class="stat-label">APPLICATIONS</div>
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="applicationsCount">0</div>
       </div>
 
       <div class="stat-card">
@@ -895,7 +895,25 @@
         Manage Candidates
     </button>
 
-</div>
+
+      <div class="coming-item">
+
+        <strong>📌 Applications & Pipeline</strong>
+
+        <span>
+          Connect candidates to jobs and track hiring stages.
+        </span>
+
+        <button
+          type="button"
+          class="primary-btn"
+          style="margin-top:14px;width:auto;padding:10px 18px;"
+          onclick="openApplicationManagement()"
+        >
+          Manage Applications
+        </button>
+
+      </div>
 
       </div>
 
@@ -1626,6 +1644,108 @@
   </div>
 
 </div>
+
+
+<!-- APPLICATION MANAGEMENT WORKSPACE -->
+
+<div
+  id="applicationManagementView"
+  class="dashboard-card hidden"
+  style="margin-top:25px;"
+>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+    <div>
+      <div class="role-badge">APPLICATIONS & PIPELINE</div>
+      <h3 style="margin-top:12px;">Hiring pipeline</h3>
+      <p>
+        Connect candidates to jobs, move them through the hiring lifecycle
+        and review a first-pass KARMSTHAN Hiring Readiness signal.
+      </p>
+    </div>
+
+    <button type="button" class="primary-btn" style="width:auto;padding:11px 20px;" onclick="showCreateApplicationForm()">
+      + Create Application
+    </button>
+  </div>
+
+  <div id="createApplicationFormContainer" class="hidden" style="margin-top:25px;border:1px solid #e6e9ef;border-radius:12px;padding:22px;background:#fafbff;">
+    <h3 style="margin-bottom:8px;">Create an application</h3>
+    <p style="color:#7a8499;font-size:13px;margin-bottom:20px;">
+      Select a job and candidate. KARMSTHAN will create the application record
+      and calculate a rules-based readiness signal.
+    </p>
+
+    <form id="createApplicationForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="applicationJob">Job *</label>
+          <select id="applicationJob" required style="width:100%;height:45px;border:1px solid #dfe3eb;border-radius:9px;padding:0 12px;font-size:14px;background:#fff;">
+            <option value="">Select a job</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="applicationCandidate">Candidate *</label>
+          <select id="applicationCandidate" required style="width:100%;height:45px;border:1px solid #dfe3eb;border-radius:9px;padding:0 12px;font-size:14px;background:#fff;">
+            <option value="">Select a candidate</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="applicationSource">Source</label>
+          <select id="applicationSource" style="width:100%;height:45px;border:1px solid #dfe3eb;border-radius:9px;padding:0 12px;font-size:14px;background:#fff;">
+            <option value="direct">Direct</option>
+            <option value="recruiter">Recruiter</option>
+            <option value="referral">Referral</option>
+            <option value="naukri">Naukri</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="applicationStatus">Initial stage</label>
+          <select id="applicationStatus" style="width:100%;height:45px;border:1px solid #dfe3eb;border-radius:9px;padding:0 12px;font-size:14px;background:#fff;">
+            <option value="applied">Applied</option>
+            <option value="shortlisted">Shortlisted</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label for="applicationNotes">Notes</label>
+        <textarea id="applicationNotes" rows="4" placeholder="Recruiter notes, interview context, compensation discussion..." style="width:100%;border:1px solid #dfe3eb;border-radius:9px;padding:12px;font-size:14px;resize:vertical;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <button type="submit" id="saveApplicationButton" class="primary-btn" style="width:auto;padding:10px 20px;">
+          Create Application
+        </button>
+        <button type="button" class="secondary-btn" onclick="hideCreateApplicationForm()" style="width:auto;padding:10px 20px;">
+          Cancel
+        </button>
+      </div>
+
+      <div id="applicationMessage" class="message"></div>
+    </form>
+  </div>
+
+  <div style="margin-top:28px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+      <strong>Your applications</strong>
+      <span id="applicationTotalCount" style="color:#7a8499;font-size:12px;">0 total</span>
+    </div>
+
+    <div id="applicationPipelineSummary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;"></div>
+
+    <div id="applicationListContainer" style="border:1px solid #e6e9ef;border-radius:12px;padding:20px;background:#fff;">
+      <div id="applicationListEmpty" style="color:#7a8499;font-size:13px;">
+        No applications yet. Create the first job-candidate application.
+      </div>
+    </div>
+  </div>
+</div>
+
   </section>
 
 </main>
@@ -3204,6 +3324,392 @@ function showCreateCandidateForm() {
 }
 
 function closeKarmsthanDetail(){document.getElementById("karmsthanDetailModal")?.remove();}
+
+/* =========================================================
+   APPLICATIONS & HIRING PIPELINE
+   ========================================================= */
+
+const APPLICATION_STATUSES = [
+  "applied",
+  "shortlisted",
+  "interview",
+  "selected",
+  "offer",
+  "accepted",
+  "joined",
+  "rejected"
+];
+
+function applicationStatusLabel(status) {
+  return String(status || "applied")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+async function getApplicationContext() {
+  const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !user) throw new Error("Your session has expired. Please sign in again.");
+
+  const { data: membership, error: membershipError } = await supabaseClient
+    .from("company_members")
+    .select("company_id, member_role")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  if (!membership) throw new Error("No company workspace is linked to your account.");
+
+  return { user, companyId: membership.company_id, membership };
+}
+
+async function openApplicationManagement() {
+  const view = document.getElementById("applicationManagementView");
+  if (!view) return;
+  view.classList.remove("hidden");
+  view.scrollIntoView({ behavior: "smooth", block: "start" });
+  await loadApplicationOptions();
+  await loadApplications();
+}
+
+async function showCreateApplicationForm() {
+  const container = document.getElementById("createApplicationFormContainer");
+  if (!container) return;
+  container.classList.remove("hidden");
+  await loadApplicationOptions();
+  container.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function hideCreateApplicationForm() {
+  document.getElementById("createApplicationFormContainer")?.classList.add("hidden");
+  document.getElementById("createApplicationForm")?.reset();
+  const message = document.getElementById("applicationMessage");
+  if (message) {
+    message.className = "message";
+    message.textContent = "";
+  }
+}
+
+async function loadApplicationOptions() {
+  const jobSelect = document.getElementById("applicationJob");
+  const candidateSelect = document.getElementById("applicationCandidate");
+  if (!jobSelect || !candidateSelect) return;
+
+  try {
+    const { companyId } = await getApplicationContext();
+
+    const [{ data: jobs, error: jobsError }, { data: candidates, error: candidatesError }] =
+      await Promise.all([
+        supabaseClient.from("jobs").select("id,title,status").eq("company_id", companyId).order("created_at", { ascending: false }),
+        supabaseClient.from("candidates").select("id,full_name,current_title").eq("company_id", companyId).order("created_at", { ascending: false })
+      ]);
+
+    if (jobsError) throw jobsError;
+    if (candidatesError) throw candidatesError;
+
+    jobSelect.innerHTML = '<option value="">Select a job</option>' +
+      (jobs || []).map(job =>
+        `<option value="${job.id}">${escapeHtml(job.title)} · ${escapeHtml(applicationStatusLabel(job.status || "open"))}</option>`
+      ).join("");
+
+    candidateSelect.innerHTML = '<option value="">Select a candidate</option>' +
+      (candidates || []).map(candidate =>
+        `<option value="${candidate.id}">${escapeHtml(candidate.full_name)}${candidate.current_title ? " · " + escapeHtml(candidate.current_title) : ""}</option>`
+      ).join("");
+
+  } catch (error) {
+    console.error("Load application options error:", error);
+    const message = document.getElementById("applicationMessage");
+    if (message) {
+      message.textContent = error.message || "Unable to load jobs and candidates.";
+      message.className = "message show error";
+    }
+  }
+}
+
+async function createApplication(event) {
+  event.preventDefault();
+
+  const button = document.getElementById("saveApplicationButton");
+  const message = document.getElementById("applicationMessage");
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Creating application...";
+  }
+
+  try {
+    const { user } = await getApplicationContext();
+    const jobId = document.getElementById("applicationJob")?.value;
+    const candidateId = document.getElementById("applicationCandidate")?.value;
+    const source = document.getElementById("applicationSource")?.value || "direct";
+    const status = document.getElementById("applicationStatus")?.value || "applied";
+    const notes = document.getElementById("applicationNotes")?.value.trim();
+
+    if (!jobId || !candidateId) throw new Error("Please select both a job and a candidate.");
+
+    const { data: existing, error: existingError } = await supabaseClient
+      .from("applications")
+      .select("id,status")
+      .eq("job_id", jobId)
+      .eq("candidate_id", candidateId)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+    if (existing) throw new Error("An application already exists for this candidate and job.");
+
+    const { error } = await supabaseClient.from("applications").insert({
+      job_id: jobId,
+      candidate_id: candidateId,
+      submitted_by: user.id,
+      source,
+      status,
+      notes: notes || null
+    });
+
+    if (error) throw error;
+
+    if (message) {
+      message.textContent = "Application created successfully.";
+      message.className = "message show success";
+    }
+
+    document.getElementById("createApplicationForm")?.reset();
+    await loadApplications();
+
+  } catch (error) {
+    console.error("Create application error:", error);
+    if (message) {
+      message.textContent = error.message || "Unable to create application.";
+      message.className = "message show error";
+    }
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Create Application";
+    }
+  }
+}
+
+async function loadApplications() {
+  const container = document.getElementById("applicationListContainer");
+  const emptyState = document.getElementById("applicationListEmpty");
+
+  try {
+    const { companyId } = await getApplicationContext();
+
+    const { data: jobs, error: jobsError } = await supabaseClient
+      .from("jobs")
+      .select("id,title,jd_text,experience_min,experience_max,salary_min,salary_max,currency")
+      .eq("company_id", companyId);
+    if (jobsError) throw jobsError;
+
+    const { data: candidates, error: candidatesError } = await supabaseClient
+      .from("candidates")
+      .select("id,full_name,current_title,current_company,total_experience,expected_salary,notice_period_days,skills")
+      .eq("company_id", companyId);
+    if (candidatesError) throw candidatesError;
+
+    const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
+    const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
+
+    const { data: applications, error } = await supabaseClient
+      .from("applications")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    const companyApplications = (applications || []).filter(app =>
+      jobMap[app.job_id] && candidateMap[app.candidate_id]
+    );
+
+    updateApplicationsCount(companyApplications.length);
+    renderApplicationPipeline(companyApplications);
+
+    if (!companyApplications.length) {
+      if (emptyState) {
+        emptyState.classList.remove("hidden");
+        emptyState.textContent = "No applications yet. Create the first job-candidate application.";
+      }
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add("hidden");
+    renderApplications(companyApplications, jobMap, candidateMap);
+
+  } catch (error) {
+    console.error("Load applications error:", error);
+    if (emptyState) {
+      emptyState.textContent = error.message || "Unable to load applications right now.";
+      emptyState.classList.remove("hidden");
+    }
+    updateApplicationsCount(0);
+  }
+}
+
+function updateApplicationsCount(count) {
+  const element = document.getElementById("applicationsCount");
+  if (element) element.textContent = count;
+  const total = document.getElementById("applicationTotalCount");
+  if (total) total.textContent = count + " total";
+}
+
+function renderApplicationPipeline(applications) {
+  const container = document.getElementById("applicationPipelineSummary");
+  if (!container) return;
+
+  const stages = ["applied", "shortlisted", "interview", "offer"];
+  container.innerHTML = stages.map(stage => {
+    const count = applications.filter(app => app.status === stage).length;
+    return `
+      <div style="border:1px solid #e6e9ef;border-radius:10px;padding:13px;background:#fafbff;">
+        <div class="stat-label">${escapeHtml(applicationStatusLabel(stage))}</div>
+        <strong style="font-size:20px;">${count}</strong>
+      </div>
+    `;
+  }).join("");
+}
+
+function calculateHiringReadiness(job, candidate) {
+  let score = 50;
+  const reasons = [];
+  const concerns = [];
+
+  const jobText = String(job?.jd_text || "").toLowerCase();
+  const candidateSkills = Array.isArray(candidate?.skills)
+    ? candidate.skills.map(skill => String(skill).toLowerCase().trim()).filter(Boolean)
+    : [];
+
+  if (candidateSkills.length) {
+    const matched = candidateSkills.filter(skill => skill.length > 1 && jobText.includes(skill));
+    if (matched.length) {
+      score += Math.min(30, matched.length * 7);
+      reasons.push("Skills found in the candidate profile: " + matched.slice(0, 5).join(", ") + ".");
+    } else {
+      concerns.push("No entered candidate skill was found verbatim in the job description.");
+    }
+  } else {
+    concerns.push("Candidate skills are not yet populated.");
+  }
+
+  const minExp = Number(job?.experience_min);
+  const maxExp = Number(job?.experience_max);
+  const candidateExp = Number(candidate?.total_experience);
+
+  if (Number.isFinite(candidateExp) && Number.isFinite(minExp)) {
+    if (candidateExp >= minExp && (!Number.isFinite(maxExp) || candidateExp <= maxExp)) {
+      score += 12;
+      reasons.push("Experience falls within the configured job range.");
+    } else if (candidateExp >= minExp) {
+      score += 7;
+      concerns.push("Experience is above the configured maximum range.");
+    } else {
+      concerns.push("Experience is below the configured minimum.");
+    }
+  } else {
+    concerns.push("Experience information is incomplete.");
+  }
+
+  const maxSalary = Number(job?.salary_max);
+  const expectedSalary = Number(candidate?.expected_salary);
+
+  if (Number.isFinite(expectedSalary) && Number.isFinite(maxSalary) && maxSalary > 0) {
+    if (expectedSalary <= maxSalary) {
+      score += 4;
+      reasons.push("Expected salary is within the configured maximum.");
+    } else {
+      concerns.push("Expected salary is above the configured job maximum.");
+    }
+  }
+
+  const readiness = Math.max(0, Math.min(100, Math.round(score)));
+  return { score: readiness, reasons, concerns };
+}
+
+function renderApplications(applications, jobMap, candidateMap) {
+  const container = document.getElementById("applicationListContainer");
+  if (!container) return;
+
+  let html = "";
+
+  applications.forEach(application => {
+    const job = jobMap[application.job_id];
+    const candidate = candidateMap[application.candidate_id];
+    const readiness = calculateHiringReadiness(job, candidate);
+
+    html += `
+      <div style="border:1px solid #e6e9ef;border-radius:14px;padding:18px;margin-bottom:12px;background:#fff;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;">
+          <div>
+            <strong style="font-size:16px;">${escapeHtml(candidate.full_name)}</strong>
+            <div style="margin-top:6px;color:#7a8499;font-size:12px;">
+              Applied to <b>${escapeHtml(job.title)}</b>
+              · ${escapeHtml(candidate.current_title || "Title not specified")}
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="padding:6px 10px;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:10px;font-weight:800;">
+              ${escapeHtml(applicationStatusLabel(application.status))}
+            </span>
+
+            <select aria-label="Application status" onchange="updateApplicationStatus('${application.id}', this.value)" style="height:34px;border:1px solid #dfe3eb;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;">
+              ${APPLICATION_STATUSES.map(stage =>
+                `<option value="${stage}" ${application.status === stage ? "selected" : ""}>${escapeHtml(applicationStatusLabel(stage))}</option>`
+              ).join("")}
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px;">
+          <div class="stat-card"><div class="stat-label">READINESS</div><strong style="font-size:21px;">${readiness.score}/100</strong></div>
+          <div class="stat-card"><div class="stat-label">EXPERIENCE</div><strong>${candidate.total_experience != null ? escapeHtml(candidate.total_experience + " yrs") : "—"}</strong></div>
+          <div class="stat-card"><div class="stat-label">NOTICE</div><strong>${candidate.notice_period_days != null ? escapeHtml(candidate.notice_period_days + " days") : "—"}</strong></div>
+          <div class="stat-card"><div class="stat-label">EXPECTED SALARY</div><strong>${candidate.expected_salary != null ? escapeHtml("₹" + Number(candidate.expected_salary).toLocaleString("en-IN")) : "—"}</strong></div>
+        </div>
+
+        <div style="margin-top:15px;border-top:1px solid #e6e9ef;padding-top:14px;">
+          <strong style="font-size:12px;">Why it matches</strong>
+          <p style="margin-top:5px;color:#667085;font-size:12px;line-height:1.6;">
+            ${escapeHtml(readiness.reasons.join(" ") || "Add candidate skills and job requirements for stronger matching signals.")}
+          </p>
+          ${readiness.concerns.length ? `
+            <strong style="display:block;margin-top:9px;font-size:12px;">Potential concerns</strong>
+            <p style="margin-top:5px;color:#667085;font-size:12px;line-height:1.6;">
+              ${escapeHtml(readiness.concerns.join(" "))}
+            </p>
+          ` : ""}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML =
+    '<div style="margin-bottom:15px;color:#7a8499;font-size:12px;">' +
+    applications.length + " application" + (applications.length === 1 ? "" : "s") +
+    "</div>" + html;
+}
+
+async function updateApplicationStatus(applicationId, status) {
+  try {
+    const { error } = await supabaseClient
+      .from("applications")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", applicationId);
+
+    if (error) throw error;
+    await loadApplications();
+
+  } catch (error) {
+    console.error("Update application status error:", error);
+    alert(error.message || "Unable to update application status.");
+    await loadApplications();
+  }
+}
+
+document.getElementById("createApplicationForm")?.addEventListener("submit", createApplication);
+
 
 function showKarmsthanDetail(html){
   closeKarmsthanDetail();
