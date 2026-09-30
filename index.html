@@ -3188,7 +3188,7 @@ const { data, error } =
               "success"
             );
 
-            await loadCurrentUser();
+            await loadCurrentUser(data?.user || null);
 
           }
 
@@ -3252,32 +3252,42 @@ const { data, error } =
     });
 
 
-  // Mobile/browser recovery: restore the Supabase session whenever the
-  // page becomes visible again (e.g. after password-manager/app switching).
+  // Restore an existing session when the page loads without calling
+  // auth.getUser() from inside onAuthStateChange (which can block on mobile
+  // browsers because Supabase holds an internal auth lock during the event).
   if (supabaseClient) {
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        loadCurrentUser().catch(error => console.error("Session restore error:", error));
-      }
-    });
+    supabaseClient.auth.getSession()
+      .then(({ data }) => {
+        if (data?.session?.user) {
+          loadCurrentUser(data.session.user).catch(error => {
+            console.error("Session restore error:", error);
+            showMessage(error.message || "Unable to open your karmsthan workspace.", "error");
+          });
+        }
+      })
+      .catch(error => console.error("Session restore failed:", error));
   }
 
   /* =========================================================
      LOAD CURRENT USER
      ========================================================= */
 
-async function loadCurrentUser() {
+async function loadCurrentUser(currentUser = null) {
 
-  const {
-    data,
-    error
-  } = await supabaseClient.auth.getUser();
+  let user = currentUser;
 
-  if (error || !data.user) {
-    return;
+  if (!user) {
+    const { data, error } = await supabaseClient.auth.getUser();
+    if (error) {
+      console.error("Unable to read authenticated user:", error);
+      throw new Error(error.message || "Unable to read your authenticated session.");
+    }
+    user = data?.user;
   }
 
-  const user = data.user;
+  if (!user) {
+    throw new Error("Your session could not be restored. Please sign in again.");
+  }
 
   const metadata = user.user_metadata || {};
 
