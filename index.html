@@ -887,7 +887,332 @@
 
       </div>
 
+   <!-- CANDIDATE MANAGEMENT WORKSPACE -->
+
+<div
+  id="candidateManagementView"
+  class="dashboard-card hidden"
+  style="margin-top:25px;"
+>
+
+  <div class="role-badge">CANDIDATE MANAGEMENT</div>
+
+  <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    margin-bottom:20px;
+  ">
+
+    <div>
+      <h3>Candidate Intelligence</h3>
+
+      <p>
+        Build candidate profiles and prepare them for
+        KARMSTHAN's hiring intelligence engine.
+      </p>
     </div>
+
+    <button
+      type="button"
+      class="primary-btn"
+      style="
+        width:auto;
+        padding:10px 18px;
+        white-space:nowrap;
+      "
+      onclick="showCreateCandidateForm()"
+    >
+      + Add Candidate
+    </button>
+
+  </div>
+
+
+  <!-- CREATE CANDIDATE FORM -->
+
+  <div
+    id="createCandidateFormContainer"
+    class="hidden"
+    style="
+      border:1px solid #e6e9ef;
+      border-radius:12px;
+      padding:22px;
+      margin-bottom:22px;
+      background:#fafbff;
+    "
+  >
+
+    <h3 style="margin-bottom:8px;">
+      Add a candidate
+    </h3>
+
+    <p style="
+      color:#7a8499;
+      font-size:13px;
+      margin-bottom:20px;
+    ">
+      Create the candidate profile that KARMSTHAN
+      will later use for resume analysis and
+      Hiring Readiness.
+    </p>
+
+
+    <form id="createCandidateForm">
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="candidateName">
+            Full name *
+          </label>
+
+          <input
+            type="text"
+            id="candidateName"
+            placeholder="Candidate full name"
+            required
+          >
+        </div>
+
+
+        <div class="form-group">
+          <label for="candidateEmail">
+            Email *
+          </label>
+
+          <input
+            type="email"
+            id="candidateEmail"
+            placeholder="candidate@email.com"
+            required
+          >
+        </div>
+
+
+        <div class="form-group">
+          <label for="candidatePhone">
+            Phone
+          </label>
+
+          <input
+            type="tel"
+            id="candidatePhone"
+            placeholder="+91 98765 43210"
+          >
+        </div>
+
+
+        <div class="form-group">
+          <label for="candidateLocation">
+            Location
+          </label>
+
+          <input
+            type="text"
+            id="candidateLocation"
+            placeholder="Bangalore"
+          >
+        </div>
+
+
+        <div class="form-group">
+          <label for="candidateExperience">
+            Total experience (years)
+          </label>
+
+          <input
+            type="number"
+            id="candidateExperience"
+            min="0"
+            step="0.5"
+            placeholder="5"
+          >
+        </div>
+
+
+        <div class="form-group">
+          <label for="candidateCurrentTitle">
+            Current / most recent title
+          </label>
+
+          <input
+            type="text"
+            id="candidateCurrentTitle"
+            placeholder="Senior Test Engineer"
+          >
+        </div>
+<div class="form-group">
+
+  <label for="candidateCurrentCompany">
+    Current company
+  </label>
+
+  <input
+    type="text"
+    id="candidateCurrentCompany"
+    placeholder="Current / most recent company"
+  >
+
+</div>
+
+
+<div class="form-group">
+
+  <label for="candidateNoticePeriod">
+    Notice period (days)
+  </label>
+
+  <input
+    type="number"
+    id="candidateNoticePeriod"
+    min="0"
+    placeholder="30"
+  >
+
+</div>
+
+
+<div class="form-group">
+
+  <label for="candidateExpectedSalary">
+    Expected salary
+  </label>
+
+  <input
+    type="number"
+    id="candidateExpectedSalary"
+    min="0"
+    placeholder="1200000"
+  >
+
+</div>
+      </div>
+
+
+      <div class="form-group" style="margin-top:16px;">
+
+        <label for="candidateSkills">
+          Skills
+        </label>
+
+        <input
+          type="text"
+          id="candidateSkills"
+          placeholder="Python, Selenium, API Testing, SQL"
+        >
+
+      </div>
+
+
+      <div class="form-group" style="margin-top:16px;">
+
+        <label for="candidateNotes">
+          Recruiter notes
+        </label>
+
+        <textarea
+          id="candidateNotes"
+          rows="4"
+          placeholder="Relevant experience, preferences, recruiter observations..."
+        ></textarea>
+
+      </div>
+
+
+      <div style="
+        display:flex;
+        gap:10px;
+        margin-top:18px;
+      ">
+
+        <button
+          type="submit"
+          id="saveCandidateButton"
+          class="primary-btn"
+          style="
+            width:auto;
+            padding:10px 20px;
+          "
+        >
+          Save Candidate
+        </button>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          onclick="hideCreateCandidateForm()"
+          style="
+            width:auto;
+            padding:10px 20px;
+          "
+        >
+          Cancel
+        </button>
+
+      </div>
+
+
+      <div
+        class="message"
+        id="candidateMessage"
+      ></div>
+
+    </form>
+
+  </div>
+
+
+  <!-- CANDIDATE LIST -->
+
+  <div
+    id="candidateListContainer"
+    style="
+      border:1px solid #e6e9ef;
+      border-radius:12px;
+      padding:20px;
+      background:#fff;
+    "
+  >
+
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:15px;
+    ">
+
+      <strong>Your candidates</strong>
+
+      <span
+        id="candidateTotalCount"
+        style="
+          color:#7a8499;
+          font-size:12px;
+        "
+      >
+        0 total
+      </span>
+
+    </div>
+
+
+    <div id="candidateListEmpty">
+
+      <div style="
+        color:#7a8499;
+        font-size:13px;
+      ">
+        No candidates added yet.
+        Add your first candidate to begin.
+      </div>
+
+    </div>
+
+  </div>
+
+</div> </div>
 <!-- JOB MANAGEMENT WORKSPACE -->
 
 <div
@@ -2390,7 +2715,424 @@ document
     "submit",
     createJob
   );
-  async function logout() {
+
+
+  /* =========================================================
+     CANDIDATE MANAGEMENT
+     ========================================================= */
+
+  /* =========================================================
+   CANDIDATE MANAGEMENT
+   ========================================================= */
+
+async function getCurrentCandidateUser() {
+
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Your session has expired. Please sign in again.");
+  }
+
+  const {
+    data: membership,
+    error: membershipError
+  } = await supabaseClient
+    .from("company_members")
+    .select("company_id, member_role")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
+
+  if (membershipError) {
+    throw membershipError;
+  }
+
+  if (!membership) {
+    throw new Error("No company workspace is linked to your account.");
+  }
+
+  return {
+    user,
+    companyId: membership.company_id
+  };
+}
+
+
+/* Open Candidate Management */
+
+async function openCandidateManagement() {
+
+  const view =
+    document.getElementById("candidateManagementView");
+
+  if (!view) return;
+
+  view.classList.remove("hidden");
+
+  view.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+  await loadCandidates();
+}
+
+
+/* Create candidate */
+
+async function createCandidate(event) {
+
+  event.preventDefault();
+
+  const button =
+    document.getElementById("saveCandidateButton");
+
+  const message =
+    document.getElementById("candidateMessage");
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Saving candidate...";
+  }
+
+  if (message) {
+    message.className = "message";
+    message.textContent = "";
+  }
+
+  try {
+
+    const {
+      user,
+      companyId
+    } = await getCurrentCandidateUser();
+
+
+    const fullName =
+      document.getElementById("candidateFullName")
+        ?.value.trim();
+
+    const email =
+      document.getElementById("candidateEmail")
+        ?.value.trim();
+
+    const phone =
+      document.getElementById("candidatePhone")
+        ?.value.trim();
+
+    const currentLocation =
+      document.getElementById("candidateCurrentLocation")
+        ?.value.trim();
+
+    const totalExperience =
+      document.getElementById("candidateTotalExperience")
+        ?.value;
+
+    const currentCompany =
+      document.getElementById("candidateCurrentCompany")
+        ?.value.trim();
+
+    const currentTitle =
+      document.getElementById("candidateCurrentTitle")
+        ?.value.trim();
+
+    const noticePeriod =
+      document.getElementById("candidateNoticePeriod")
+        ?.value;
+
+    const expectedSalary =
+      document.getElementById("candidateExpectedSalary")
+        ?.value;
+
+    const skillsText =
+      document.getElementById("candidateSkills")
+        ?.value.trim();
+
+    const educationText =
+      document.getElementById("candidateEducation")
+        ?.value.trim();
+
+
+    if (!fullName) {
+      throw new Error("Please enter the candidate name.");
+    }
+
+
+    const skills =
+      skillsText
+        ? skillsText
+            .split(",")
+            .map(skill => skill.trim())
+            .filter(Boolean)
+        : [];
+
+
+    const education =
+      educationText
+        ? {
+            summary: educationText
+          }
+        : null;
+
+
+    const { error } =
+      await supabaseClient
+        .from("candidates")
+        .insert({
+          company_id: companyId,
+          created_by: user.id,
+          full_name: fullName,
+          email: email || null,
+          phone: phone || null,
+          current_location: currentLocation || null,
+          total_experience:
+            totalExperience
+              ? Number(totalExperience)
+              : null,
+          current_company: currentCompany || null,
+          current_title: currentTitle || null,
+          notice_period_days:
+            noticePeriod
+              ? Number(noticePeriod)
+              : null,
+          expected_salary:
+            expectedSalary
+              ? Number(expectedSalary)
+              : null,
+          skills: skills,
+          education: education
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (message) {
+
+      message.textContent =
+        "Candidate added successfully.";
+
+      message.className =
+        "message show success";
+    }
+
+
+    document
+      .getElementById("createCandidateForm")
+      ?.reset();
+
+
+    await loadCandidates();
+
+
+  } catch (error) {
+
+    console.error(
+      "Create candidate error:",
+      error
+    );
+
+    if (message) {
+
+      message.textContent =
+        error.message ||
+        "Unable to create candidate.";
+
+      message.className =
+        "message show error";
+    }
+
+  } finally {
+
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Save Candidate";
+    }
+
+  }
+}
+
+
+/* Load candidates */
+
+async function loadCandidates() {
+
+  const container =
+    document.getElementById("candidateListContainer");
+
+  const emptyState =
+    document.getElementById("candidateListEmpty");
+
+  try {
+
+    const {
+      companyId
+    } = await getCurrentCandidateUser();
+
+
+    const {
+      data: candidates,
+      error
+    } = await supabaseClient
+      .from("candidates")
+      .select("*")
+      .eq("company_id", companyId)
+      .order("created_at", {
+        ascending: false
+      });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (!candidates || candidates.length === 0) {
+
+      if (emptyState) {
+        emptyState.classList.remove("hidden");
+      }
+
+      if (container) {
+        container.innerHTML = "";
+      }
+
+      updateCandidatesCount(0);
+
+      return;
+    }
+
+
+    if (emptyState) {
+      emptyState.classList.add("hidden");
+    }
+
+
+    updateCandidatesCount(
+      candidates.length
+    );
+
+
+    renderCandidates(candidates);
+
+
+  } catch (error) {
+
+    console.error(
+      "Load candidates error:",
+      error
+    );
+
+    if (emptyState) {
+      emptyState.textContent =
+        "Unable to load candidates right now.";
+      emptyState.classList.remove("hidden");
+    }
+
+  }
+}
+
+
+/* Render candidates */
+
+function renderCandidates(candidates) {
+
+  const container =
+    document.getElementById("candidateListContainer");
+
+  if (!container) return;
+
+
+  let html = "";
+
+
+  candidates.forEach(candidate => {
+
+    html += `
+      <div style="
+        border:1px solid #e6e9ef;
+        border-radius:12px;
+        padding:18px;
+        margin-bottom:12px;
+        background:#fff;
+      ">
+
+        <strong style="
+          font-size:15px;
+        ">
+          ${escapeHtml(candidate.full_name)}
+        </strong>
+
+        <div style="
+          margin-top:7px;
+          color:#7a8499;
+          font-size:12px;
+        ">
+          ${escapeHtml(
+            candidate.current_title ||
+            "Title not specified"
+          )}
+          ·
+          ${escapeHtml(
+            candidate.current_company ||
+            "Company not specified"
+          )}
+        </div>
+
+        <div style="
+          margin-top:6px;
+          color:#7a8499;
+          font-size:12px;
+        ">
+          ${escapeHtml(
+            candidate.current_location ||
+            "Location not specified"
+          )}
+          ·
+          ${
+            candidate.total_experience != null
+              ? candidate.total_experience + " years"
+              : "Experience not specified"
+          }
+        </div>
+
+      </div>
+    `;
+  });
+
+
+  container.innerHTML = html;
+}
+
+
+/* Candidate dashboard count */
+
+function updateCandidatesCount(count) {
+
+  const element =
+    document.getElementById("candidatesCount");
+
+  if (element) {
+    element.textContent = count;
+  }
+}
+
+
+/* Connect Candidate form */
+
+document
+  .getElementById("createCandidateForm")
+  ?.addEventListener(
+    "submit",
+    createCandidate
+  );
+
+async function logout() {
 
     await supabaseClient.auth.signOut();
 
