@@ -4570,8 +4570,8 @@ function skillMatchesJob(skill, normalizedJobText) {
   const normalizedSkill = normalizeMatchText(skill);
   if (!normalizedSkill || normalizedSkill.length < 2) return false;
 
-  const escaped = normalizedSkill.replace(/[.*+?^()|[\\]\\]/g, "\\$&");
-  const pattern = new RegExp("(^|\\\\s)" + escaped + "(?=\\\\s|$)", "i");
+  const skillPattern = normalizedSkill.replace(/\\s+/g, "\\\\s+");
+  const pattern = new RegExp("(^|\\s)" + skillPattern + "(?=\\s|$)", "i");
   return pattern.test(" " + normalizedJobText + " ");
 }
 
