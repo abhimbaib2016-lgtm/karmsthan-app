@@ -1110,6 +1110,10 @@
         display: none;
       }
 
+      .intelligence-decision-grid {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
       .workspace-panel-heading {
         display: block;
       }
@@ -1130,6 +1134,15 @@
     .intelligence-metric .metric-label{color:#718096;font-size:9px;font-weight:900;letter-spacing:.1em;margin-bottom:7px}
     .intelligence-metric strong{display:block;color:#0b2f6b;font-size:23px}
     .intelligence-metric small{display:block;color:#8a97a9;font-size:10px;margin-top:4px}
+    .intelligence-list{display:grid;gap:10px}
+    .intelligence-decision-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .intelligence-decision-grid>div{border:1px solid #dce5ef;border-radius:14px;padding:14px;background:#fff}
+    .intelligence-decision-grid span{display:block;color:#7b8798;font-size:9px;font-weight:900;letter-spacing:.1em}
+    .intelligence-decision-grid strong{display:block;color:#0b2f6b;font-size:22px;margin-top:5px}
+    .intelligence-decision-grid small{display:block;color:#8a97a9;font-size:10px;margin-top:3px}
+    .intelligence-why{display:flex;gap:10px;align-items:flex-start;border:1px solid #ffe0cd;background:#fff8f3;border-radius:13px;padding:13px 15px;margin-bottom:14px}
+    .intelligence-why strong{color:#e95e00;font-size:9px;letter-spacing:.1em;white-space:nowrap}
+    .intelligence-why span{color:#6d7d93;font-size:11px;line-height:1.55}
     .intelligence-list{display:grid;gap:10px}
     .intelligence-row{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;border:1px solid #e0e7f0;border-radius:14px;padding:15px 17px;background:#fff;transition:.18s ease}
     .intelligence-row:hover{border-color:#cbd9e8;box-shadow:0 8px 22px rgba(18,61,104,.06)}
@@ -3730,22 +3743,38 @@ async function loadHiringIntelligence(showErrors = false) {
     });
 
     const avg=rows.length?Math.round(rows.reduce((s,r)=>s+r.readiness.score,0)/rows.length):null;
+    const staleCutoff=Date.now()-3*24*60*60*1000;
+    const stalledRows=rows.filter(r=>r.app.updated_at && new Date(r.app.updated_at).getTime()<staleCutoff && !["rejected","joined"].includes(r.app.status));
+    const evidenceGapRows=rows.filter(r=>r.readiness.confidence<50);
+    const riskRows=rows.filter(r=>r.readiness.score<60);
     document.getElementById("intelligenceApplicationCount").textContent=rows.length;
     document.getElementById("intelligenceAverageScore").textContent=avg==null?"—":avg+"/100";
     document.getElementById("intelligenceReadyCount").textContent=rows.filter(r=>r.readiness.score>=75).length;
-    document.getElementById("intelligenceReviewCount").textContent=rows.filter(r=>r.readiness.score<60).length;
+    document.getElementById("intelligenceReviewCount").textContent=riskRows.length;
 
     if(!rows.length){
       list.innerHTML='<div class="intelligence-empty"><strong>Your intelligence engine is ready.</strong><span>Once a candidate is connected to a job through Applications, karmsthan will calculate an explainable readiness view here.</span></div>';
       return;
     }
 
-    list.innerHTML=rows.slice(0,6).map(row=>{
+    const priorityScore = row => (row.readiness.score<60?40:0) + (row.readiness.confidence<50?20:0) + (row.app.updated_at && new Date(row.app.updated_at).getTime()<staleCutoff && !["rejected","joined"].includes(row.app.status)?15:0);
+    const prioritizedRows=[...rows].sort((a,b)=>priorityScore(b)-priorityScore(a));
+    const topRow=rows[0];
+    const intelligenceBanner='<div class="intelligence-decision-grid">' +
+      '<div><span>NEEDS REVIEW</span><strong>'+riskRows.length+'</strong><small>Low readiness signals</small></div>' +
+      '<div><span>EVIDENCE GAPS</span><strong>'+evidenceGapRows.length+'</strong><small>Profiles need better data</small></div>' +
+      '<div><span>STALL RISK</span><strong>'+stalledRows.length+'</strong><small>Applications inactive for 3+ days</small></div>' +
+      '<div><span>STRONGEST SIGNAL</span><strong>'+(topRow?topRow.readiness.score:"—")+'</strong><small>'+(topRow?escapeHtml(topRow.candidate.full_name):"No candidate")+'</small></div>' +
+      '</div>' +
+      '<div class="intelligence-why"><strong>HOW TO READ THIS</strong><span>KARMSTHAN Intelligence is not another candidate list. It prioritizes situations that may require recruiter attention, explains the evidence behind each signal, and keeps the final decision with the hiring team.</span></div>';
+    list.innerHTML=intelligenceBanner+prioritizedRows.slice(0,8).map(row=>{
       const name=row.candidate.full_name||"Unnamed candidate";
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase()||"K";
-      const signal=row.readiness.reasons[0]||row.readiness.concerns[0]||"More candidate information is needed.";
+      const signal=row.readiness.concerns[0]||row.readiness.reasons[0]||"Evidence is currently aligned.";
+      const stale=row.app.updated_at && new Date(row.app.updated_at).getTime()<staleCutoff && !["rejected","joined"].includes(row.app.status);
+      const urgency=row.readiness.score<60?"Needs review":stale?"Potentially stalled":row.readiness.confidence<50?"Evidence gap":"Monitor";
       const riskCount=row.readiness.concerns.length;
-      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+' · '+row.readiness.confidence+'% evidence confidence</span></div></div><div style="display:flex;align-items:center;gap:9px;"><button type="button" class="secondary-btn" style="width:auto;padding:8px 11px;" onclick="openIntelligenceRow(\''+row.app.id+'\')">View detail</button><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS · '+riskCount+' RISK'+(riskCount===1?'':'S')+'</span></div></div></div>';
+      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(urgency)+' · '+escapeHtml(signal)+' · '+row.readiness.confidence+'% evidence confidence</span></div></div><div style="display:flex;align-items:center;gap:9px;"><button type="button" class="secondary-btn" style="width:auto;padding:8px 11px;" onclick="openIntelligenceRow(\''+row.app.id+'\')">Explain</button><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>'+riskCount+' RISK'+(riskCount===1?'':'S')+'</span></div></div></div>';
     }).join("");
   } catch(error) {
     console.error("Hiring intelligence error:",error);
