@@ -912,6 +912,8 @@
     .workspace-page-title h2{margin:8px 0 5px;font-size:28px;color:#0b2f6b}
     .workspace-page-title p{margin:0;color:#6d7d93;font-size:13px;line-height:1.6}
     .workspace-back{width:auto;padding:9px 14px;white-space:nowrap}
+    #hiringIntelligencePanel.workspace-page{margin-top:25px}
+    #hiringIntelligencePanel.workspace-page.hidden{display:none !important}
     .workspace-nav button.active{background:#0b2f6b;color:#fff;border-color:#0b2f6b}
     .workspace-nav button{transition:.18s ease}
     .workspace-nav button:hover{transform:translateY(-1px)}
@@ -2148,11 +2150,17 @@ header {
 
         <div class="coming-item" id="hiringReadinessCard">
           <div class="coming-icon">🎯</div>
-          <strong>Hiring Readiness</strong>
+          <strong>Hiring Intelligence</strong>
           <span>
-            Candidate-to-job alignment, explainable fit signals and AI-assisted hiring decisions.
+            See candidate readiness, evidence, risks and next actions in a dedicated intelligence workspace.
           </span>
-          <div class="coming-status">INTELLIGENCE ENGINE · NEXT</div>
+          <button
+            type="button"
+            class="primary-btn"
+            onclick="openWorkspaceView('intelligence')"
+          >
+            Open Intelligence
+          </button>
         </div>
 
         <div class="coming-item" id="jobManagementCard">
@@ -2211,15 +2219,20 @@ header {
 
       </div>
 
-    <!-- HIRING INTELLIGENCE -->
-    <div id="hiringIntelligencePanel" class="dashboard-card intelligence-panel">
-      <div class="intelligence-header">
-        <div>
-          <div class="intelligence-kicker">karmsthan INTELLIGENCE ENGINE · V1</div>
-          <h3>Hiring Readiness</h3>
-          <p>Candidate-to-job fit using the signals already captured in karmsthan — skills, experience, compensation and pipeline data.</p>
+      </div>
+
+      <!-- HIRING INTELLIGENCE WORKSPACE -->
+    <div id="hiringIntelligencePanel" class="dashboard-card intelligence-panel workspace-page hidden">
+      <div class="workspace-page-head" style="margin-bottom:24px;">
+        <div class="workspace-page-title">
+          <div class="role-badge">karmsthan INTELLIGENCE ENGINE · V1</div>
+          <h2>Hiring Intelligence</h2>
+          <p>Understand who fits, why they fit, what evidence is missing, and what the recruiter should do next.</p>
         </div>
-        <button type="button" class="primary-btn intelligence-action" onclick="loadHiringIntelligence(true)">Refresh intelligence</button>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;">
+          <button type="button" class="secondary-btn workspace-back" onclick="openWorkspaceView('overview')">← Back to Overview</button>
+          <button type="button" class="primary-btn intelligence-action" onclick="loadHiringIntelligence(true)">Refresh intelligence</button>
+        </div>
       </div>
       <div class="intelligence-metrics">
         <div class="intelligence-metric"><div class="metric-label">APPLICATIONS ANALYZED</div><strong id="intelligenceApplicationCount">0</strong><small>Connected candidate-job pairs</small></div>
@@ -2232,8 +2245,6 @@ header {
       </div>
       <div class="intelligence-footnote">V1 uses transparent rule-based signals. This is the foundation for the future karmsthan AI assessment layer; recommendations remain explainable rather than being presented as an opaque score.</div>
     </div>
-
-      </div>
 
       <!-- CANDIDATE MANAGEMENT WORKSPACE -->
 
@@ -3901,7 +3912,7 @@ async function openWorkspaceView(view) {
   const applications = document.getElementById("applicationManagementView");
   const intelligence = document.getElementById("hiringIntelligencePanel");
 
-  [overview, jobs, candidates, applications].forEach(panel => {
+  [overview, jobs, candidates, applications, intelligence].forEach(panel => {
     if (panel) panel.classList.add("hidden");
   });
 
@@ -3918,8 +3929,7 @@ async function openWorkspaceView(view) {
     loadApplicationOptions();
     loadApplications();
   } else if (view === "intelligence") {
-    overview?.classList.remove("hidden");
-    setTimeout(() => intelligence?.scrollIntoView({behavior:"smooth", block:"start"}), 30);
+    intelligence?.classList.remove("hidden");
     loadHiringIntelligence(false);
   }
 
@@ -3927,9 +3937,7 @@ async function openWorkspaceView(view) {
     button.classList.toggle("active", button.getAttribute("data-workspace-nav") === view);
   });
 
-  if (view !== "intelligence") {
-    window.scrollTo({top: 0, behavior: "smooth"});
-  }
+  window.scrollTo({top: 0, behavior: "smooth"});
 }
 
 function openJobManagement() {
