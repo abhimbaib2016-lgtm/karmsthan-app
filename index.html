@@ -5400,9 +5400,20 @@ function openHiringIntelligenceDetail(application, job, candidate) {
   );
 }
 
+function openApplicationIntelligence(applicationId) {
+  const item = window.karmsthanApplicationIntelligence?.[applicationId];
+  if (!item) {
+    alert("This application intelligence record is no longer available. Refresh the Applications view.");
+    return;
+  }
+  openHiringIntelligenceDetail(item.application, item.job, item.candidate);
+}
+
 function renderApplications(applications, jobMap, candidateMap) {
   const container = document.getElementById("applicationListContainer");
   if (!container) return;
+
+  window.karmsthanApplicationIntelligence = {};
 
   let html = "";
 
@@ -5410,6 +5421,12 @@ function renderApplications(applications, jobMap, candidateMap) {
     const job = jobMap[application.job_id];
     const candidate = candidateMap[application.candidate_id];
     const readiness = calculateHiringReadiness(job, candidate);
+
+    window.karmsthanApplicationIntelligence[application.id] = {
+      application,
+      job,
+      candidate
+    };
 
     html += `
       <div style="border:1px solid #e6e9ef;border-radius:14px;padding:18px;margin-bottom:12px;background:#fff;">
@@ -5443,6 +5460,9 @@ function renderApplications(applications, jobMap, candidateMap) {
         </div>
 
         <div style="margin-top:15px;border-top:1px solid #e6e9ef;padding-top:14px;">
+          <button type="button" class="secondary-btn" style="width:auto;padding:8px 12px;margin-bottom:12px;" onclick="openApplicationIntelligence('${application.id}')">
+            View intelligence detail
+          </button>
           <strong style="font-size:12px;">Why it matches</strong>
           <p style="margin-top:5px;color:#667085;font-size:12px;line-height:1.6;">
             ${escapeHtml(readiness.reasons.join(" ") || "Add candidate skills and job requirements for stronger matching signals.")}
