@@ -3547,6 +3547,15 @@ async function loadCurrentUser() {
 }
 
 
+function openIntelligenceRow(applicationId) {
+  const row = window.karmsthanIntelligenceRows?.[applicationId];
+  if (!row) {
+    alert("Intelligence details are unavailable. Refresh the intelligence panel.");
+    return;
+  }
+  openHiringIntelligenceDetail(row.app, row.job, row.candidate);
+}
+
 async function loadHiringIntelligence(showErrors = false) {
   const list = document.getElementById("intelligenceList");
   if (!list) return;
@@ -3563,10 +3572,15 @@ async function loadHiringIntelligence(showErrors = false) {
 
     const jobMap = Object.fromEntries((jobs || []).map(job => [job.id, job]));
     const candidateMap = Object.fromEntries((candidates || []).map(candidate => [candidate.id, candidate]));
+    window.karmsthanIntelligenceRows = {};
     const rows = (applications || []).filter(app => jobMap[app.job_id] && candidateMap[app.candidate_id]).map(app => {
       const job=jobMap[app.job_id], candidate=candidateMap[app.candidate_id];
       return {app,job,candidate,readiness:calculateHiringReadiness(job,candidate)};
     }).sort((a,b)=>b.readiness.score-a.readiness.score);
+
+    rows.forEach(row => {
+      window.karmsthanIntelligenceRows[row.app.id] = row;
+    });
 
     const avg=rows.length?Math.round(rows.reduce((s,r)=>s+r.readiness.score,0)/rows.length):null;
     document.getElementById("intelligenceApplicationCount").textContent=rows.length;
@@ -3583,7 +3597,8 @@ async function loadHiringIntelligence(showErrors = false) {
       const name=row.candidate.full_name||"Unnamed candidate";
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase()||"K";
       const signal=row.readiness.reasons[0]||row.readiness.concerns[0]||"More candidate information is needed.";
-      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+'</span></div></div><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS</span></div></div>';
+      const riskCount=row.readiness.concerns.length;
+      return '<div class="intelligence-row"><div class="intelligence-candidate"><div class="intelligence-avatar">'+escapeHtml(initials)+'</div><div><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(row.candidate.current_title||"Candidate")+' · Applied to '+escapeHtml(row.job.title||"Job")+' · '+escapeHtml(signal)+' · '+row.readiness.confidence+'% evidence confidence</span></div></div><div style="display:flex;align-items:center;gap:9px;"><button type="button" class="secondary-btn" style="width:auto;padding:8px 11px;" onclick="openIntelligenceRow(\''+row.app.id+'\')">View detail</button><div class="readiness-score"><strong>'+row.readiness.score+'</strong><span>READINESS · '+riskCount+' RISK'+(riskCount===1?'':'S')+'</span></div></div></div>';
     }).join("");
   } catch(error) {
     console.error("Hiring intelligence error:",error);
