@@ -921,7 +921,44 @@
     .module-summary-card{border:1px solid #e2e8f0;border-radius:14px;padding:15px;background:#fff}
     .module-summary-card span{display:block;font-size:9px;font-weight:900;letter-spacing:.08em;color:#7c8a9c}
     .module-summary-card strong{display:block;margin-top:6px;font-size:22px;color:#0b2f6b}
-    @media(max-width:700px){.workspace-page-head{flex-direction:column}.module-summary{grid-template-columns:1fr}}
+    .overview-attention{margin:22px 0 26px;border:1px solid #dce6f2;border-radius:18px;padding:20px;background:linear-gradient(135deg,#f9fbff,#fffaf6)}
+    .overview-attention-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+    .overview-attention-head h3{margin:5px 0;color:#0b2f6b}
+    .overview-attention-head p{font-size:12px;color:#718096}
+    .overview-attention-head .secondary-btn{width:auto;padding:8px 12px}
+    .overview-attention-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+    .overview-attention-card{border:1px solid #e1e8f1;border-radius:14px;padding:15px;background:#fff}
+    .overview-attention-card span,.pipeline-card-meta span,.job-detail-pulse span,.job-detail-box span{display:block;color:#7b8798;font-size:9px;font-weight:900;letter-spacing:.1em}
+    .overview-attention-card strong{display:block;color:#0b2f6b;font-size:18px;margin-top:6px}
+    .overview-attention-card small{display:block;color:#7b8798;font-size:11px;margin-top:5px;line-height:1.5}
+    .pipeline-card{border:1px solid #e2e8f0;border-radius:15px;padding:17px;margin-bottom:11px;background:#fff;transition:.18s ease}
+    .pipeline-card:hover{border-color:#cbd9e8;box-shadow:0 8px 22px rgba(18,61,104,.06)}
+    .pipeline-card-main{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+    .pipeline-candidate{font-size:15px;color:#0b2f6b}
+    .pipeline-role{margin-top:5px;color:#7b8798;font-size:11px}
+    .pipeline-stage-control{display:flex;gap:8px;align-items:center}
+    .pipeline-stage{padding:6px 10px;border-radius:999px;background:#eef4ff;color:#0b2f6b;font-size:10px;font-weight:800}
+    .pipeline-stage-control select{height:33px;border:1px solid #dfe3eb;border-radius:8px;padding:0 8px;font-size:11px;background:#fff}
+    .pipeline-card-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px;padding-top:13px;border-top:1px solid #edf0f4}
+    .pipeline-card-meta strong{display:block;color:#344054;font-size:12px;margin-top:5px}
+    .pipeline-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .pipeline-card-actions .secondary-btn{width:auto;padding:8px 11px;font-size:11px}
+    .job-detail-pulse{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .job-detail-pulse>div{border:1px solid #dce5ef;border-radius:13px;padding:14px;background:#f9fbff}
+    .job-detail-pulse strong{display:block;color:#0b2f6b;font-size:22px;margin-top:5px}
+    .job-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+    .job-detail-box{border:1px solid #e2e8f0;border-radius:12px;padding:14px;background:#fff}
+    .job-detail-box strong{display:block;color:#0b2f6b;font-size:13px;margin-top:6px}
+    .job-detail-section{border:1px solid #e2e8f0;border-radius:13px;padding:17px;background:#fafcff;margin-top:14px}
+    .candidate-profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .candidate-360-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .candidate-history{margin-top:8px}
+    .candidate-history-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #edf0f4}
+    .candidate-history-row:last-child{border-bottom:0}
+    .candidate-history-row strong{display:block;color:#344054;font-size:12px}
+    .candidate-history-row span,.candidate-history-row small{display:block;color:#8a97a9;font-size:10px;margin-top:3px}
+    .candidate-history-row b{display:block;color:#0b2f6b;font-size:11px;text-align:right}
+    @media(max-width:700px){.workspace-page-head{flex-direction:column}.module-summary{grid-template-columns:1fr}.overview-attention-grid,.pipeline-card-meta,.job-detail-pulse,.job-detail-grid,.candidate-profile-grid,.candidate-360-columns{grid-template-columns:1fr}.pipeline-card-main{flex-direction:column}.pipeline-stage-control{width:100%}.pipeline-stage-control select{flex:1}}
     .workspace-nav {
       display: flex;
       align-items: center;
@@ -2022,10 +2059,10 @@ header {
     <nav class="workspace-nav" aria-label="karmsthan workspace navigation">
       <button type="button" data-workspace-nav="overview" class="active" onclick="openWorkspaceView('overview')">Overview</button>
       <button type="button" data-workspace-nav="jobs" onclick="openJobManagement()">Jobs</button>
-      <button type="button" data-workspace-nav="candidates" onclick="openCandidateManagement()">Candidates</button>
-      <button type="button" data-workspace-nav="applications" onclick="openApplicationManagement()">Applications</button>
+      <button type="button" data-workspace-nav="candidates" onclick="openCandidateManagement()">Talent</button>
+      <button type="button" data-workspace-nav="applications" onclick="openApplicationManagement()">Pipeline</button>
       <span class="nav-divider"></span>
-      <button type="button" data-workspace-nav="intelligence" onclick="openWorkspaceView('intelligence')">Hiring Intelligence</button>
+      <button type="button" data-workspace-nav="intelligence" onclick="openWorkspaceView('intelligence')">Intelligence</button>
     </nav>
 
 
@@ -2141,10 +2178,24 @@ header {
       </div>
 
       <p>
-        Move from job creation to candidate evaluation and hiring outcomes
-        inside one connected karmsthan workspace.
+        One connected hiring system: define the demand, build your talent pool, move applications, and let KARMSTHAN surface what needs attention.
       </p>
 
+      <div class="overview-attention" id="overviewAttention">
+        <div class="overview-attention-head">
+          <div>
+            <div class="workspace-panel-kicker">TODAY'S HIRING PULSE</div>
+            <h3>What needs your attention?</h3>
+            <p>Signals from your live jobs, talent pool and application pipeline.</p>
+          </div>
+          <button type="button" class="secondary-btn" onclick="loadOverviewSnapshot()">Refresh</button>
+        </div>
+        <div class="overview-attention-grid">
+          <div class="overview-attention-card"><span>PIPELINE</span><strong id="overviewPipelineSignal">Loading…</strong><small id="overviewPipelineDetail">Checking current applications.</small></div>
+          <div class="overview-attention-card"><span>RISK SIGNALS</span><strong id="overviewRiskSignal">Loading…</strong><small id="overviewRiskDetail">Checking candidate evidence.</small></div>
+          <div class="overview-attention-card"><span>OPEN DEMAND</span><strong id="overviewDemandSignal">Loading…</strong><small id="overviewDemandDetail">Checking active jobs.</small></div>
+        </div>
+      </div>
 
       <div class="coming-grid">
 
@@ -3595,6 +3646,7 @@ async function loadCurrentUser() {
       " · karmsthan Hiring Intelligence";
 
   loadHiringIntelligence(false);
+  loadOverviewSnapshot();
 
   window.scrollTo({
     top: 0,
@@ -3610,6 +3662,45 @@ function openIntelligenceRow(applicationId) {
     return;
   }
   openHiringIntelligenceDetail(row.app, row.job, row.candidate);
+}
+
+async function loadOverviewSnapshot() {
+  const ids = ["overviewPipelineSignal","overviewPipelineDetail","overviewRiskSignal","overviewRiskDetail","overviewDemandSignal","overviewDemandDetail"];
+  const els = ids.map(id => document.getElementById(id));
+  if (!els[0]) return;
+  try {
+    const { company } = await getCurrentCompany();
+    const [{data:jobs,error:jobsError},{data:candidates,error:candidatesError},{data:applications,error:applicationsError}] = await Promise.all([
+      supabaseClient.from("jobs").select("id,status,jd_text,experience_min,experience_max,salary_min,salary_max,currency").eq("company_id",company.id),
+      supabaseClient.from("candidates").select("id,skills,total_experience,expected_salary,notice_period_days,current_location,current_title").eq("company_id",company.id),
+      supabaseClient.from("applications").select("*")
+    ]);
+    if (jobsError) throw jobsError;
+    if (candidatesError) throw candidatesError;
+    if (applicationsError) throw applicationsError;
+    const jobIds = new Set((jobs || []).map(j => j.id));
+    const candidateIds = new Set((candidates || []).map(c => c.id));
+    const apps = (applications || []).filter(a => jobIds.has(a.job_id) && candidateIds.has(a.candidate_id));
+    const activeJobs = (jobs || []).filter(j => j.status === "open").length;
+    const inMotion = apps.filter(a => !["rejected","joined"].includes(a.status)).length;
+    const lateStages = apps.filter(a => ["offer","accepted"].includes(a.status)).length;
+    els[0].textContent = apps.length ? inMotion + " active" : "No pipeline";
+    els[1].textContent = apps.length ? lateStages + " offer/acceptance stage · " + apps.length + " total applications" : "Create the first candidate-job application.";
+    const candidateMap = Object.fromEntries((candidates || []).map(c => [c.id,c]));
+    const jobMap = Object.fromEntries((jobs || []).map(j => [j.id,j]));
+    let review = 0;
+    apps.forEach(app => {
+      const readiness = calculateHiringReadiness(jobMap[app.job_id], candidateMap[app.candidate_id]);
+      if (readiness.score < 60 || readiness.confidence < 50) review++;
+    });
+    els[2].textContent = review ? review + " need review" : "No urgent flags";
+    els[3].textContent = review ? "Low readiness or incomplete evidence is waiting for recruiter review." : "Current application evidence is reasonably complete.";
+    els[4].textContent = activeJobs + " open";
+    els[5].textContent = activeJobs ? "Active hiring requirements in this workspace." : "No open roles yet.";
+  } catch (error) {
+    console.error("Overview snapshot error:", error);
+    els.forEach((el,i) => { if (el) el.textContent = i % 2 ? "Refresh after your workspace loads." : "Unavailable"; });
+  }
 }
 
 async function loadHiringIntelligence(showErrors = false) {
