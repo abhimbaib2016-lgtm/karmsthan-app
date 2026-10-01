@@ -2725,10 +2725,11 @@ header {
 
       <div class="form-group">
 
-        <label>Employment type</label>
+        <label>Employment type *</label>
 
         <select
           id="jobEmploymentType"
+          required
           style="
             width:100%;
             height:45px;
@@ -4038,104 +4039,80 @@ async function loadJobs() {
 
 /* Render job list */
 
+function formatJobTitle(title) {
+  return String(title || "")
+    .trim()
+    .split(/\s+/)
+    .map(word => word.length <= 3 && word === word.toUpperCase()
+      ? word
+      : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 function renderJobs(jobs) {
-
-  const container =
-    document.getElementById("jobListContainer");
-
+  const container = document.getElementById("jobListContainer");
   if (!container) return;
 
   let html = `
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:15px;
-    ">
-      <strong>Your jobs</strong>
-      <span style="
-        color:#7a8499;
-        font-size:12px;
-      ">
-        ${jobs.length} total
-      </span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+      <div>
+        <strong>Your open roles</strong>
+        <div style="margin-top:4px;color:#7a8499;font-size:11px;">Structured hiring requirements in this workspace</div>
+      </div>
+      <span style="color:#7a8499;font-size:12px;">${jobs.length} total</span>
     </div>
   `;
 
   jobs.forEach(job => {
-
-    const status =
-      job.status || "draft";
-
-    const statusLabel =
-      status.charAt(0).toUpperCase() +
-      status.slice(1);
+    const status = job.status || "draft";
+    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+    const title = formatJobTitle(job.title);
+    const experience = job.experience_min != null || job.experience_max != null
+      ? (job.experience_min != null ? job.experience_min : "—") + "–" + (job.experience_max != null ? job.experience_max : "—") + " yrs"
+      : "Experience not specified";
+    const salary = job.salary_min != null || job.salary_max != null
+      ? (job.salary_min != null ? "₹" + Number(job.salary_min).toLocaleString("en-IN") : "—") + " – " +
+        (job.salary_max != null ? "₹" + Number(job.salary_max).toLocaleString("en-IN") : "—")
+      : "Compensation not specified";
 
     html += `
       <div role="button" tabindex="0"
         onclick="openJobDetails('${job.id}')"
-        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openJobDetails('${job.id}')}"}
-        style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;margin-bottom:12px;background:#fff;cursor:pointer;transition:.15s;"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 22px rgba(30,41,90,.08)';"
-        onmouseout="this.style.transform='';this.style.boxShadow='';">
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openJobDetails('${job.id}')}"
+        style="border:1px solid #e2e8f0;border-radius:16px;padding:20px;margin-bottom:12px;background:#fff;cursor:pointer;transition:.15s;box-shadow:0 3px 12px rgba(20,43,84,.03);"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 24px rgba(20,43,84,.08)';"
+        onmouseout="this.style.transform='';this.style.boxShadow='0 3px 12px rgba(20,43,84,.03)';">
 
-        <div style="
-          display:flex;
-          justify-content:space-between;
-          align-items:flex-start;
-          gap:15px;
-        ">
-
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:15px;">
           <div>
-
-            <strong style="
-              font-size:15px;
-            ">
-              ${escapeHtml(job.title)}
-            </strong>
-
-            <div style="
-              margin-top:6px;
-              color:#7a8499;
-              font-size:12px;
-            ">
-              ${escapeHtml(job.location || "Location not specified")}
-              ·
-              ${escapeHtml(job.employment_type || "Employment type not specified")}
+            <strong style="font-size:18px;color:#0b2f6b;">${escapeHtml(title)}</strong>
+            <div style="margin-top:7px;color:#718096;font-size:12px;">
+              ${escapeHtml(job.department || "Engineering / Business")} · ${escapeHtml(job.location || "Location not specified")}
             </div>
-
           </div>
-
-          <span style="
-            padding:5px 9px;
-            border-radius:20px;
-            background:#eef0ff;
-            color:#3949ab;
-            font-size:10px;
-            font-weight:700;
-          ">
+          <span style="padding:6px 10px;border-radius:20px;background:#eef7f2;color:#18794e;font-size:10px;font-weight:800;">
             ${escapeHtml(statusLabel)}
           </span>
-
         </div>
 
-        <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-          <button
-            type="button"
-            class="primary-btn"
-            style="width:auto;padding:9px 16px;margin:0;"
-            onclick="event.stopPropagation(); openJobDetails('${job.id}')"
-          >
-            View Job Details →
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+          <span style="padding:7px 10px;border-radius:8px;background:#f5f7fb;color:#53647a;font-size:11px;">${escapeHtml(job.employment_type || "Employment type not specified")}</span>
+          <span style="padding:7px 10px;border-radius:8px;background:#f5f7fb;color:#53647a;font-size:11px;">${escapeHtml(experience)}</span>
+          <span style="padding:7px 10px;border-radius:8px;background:#f5f7fb;color:#53647a;font-size:11px;">${escapeHtml(salary)}</span>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+          <button type="button" class="secondary-btn" style="width:auto;padding:8px 14px;margin:0;" onclick="event.stopPropagation();openJobDetails('${job.id}')">
+            View job details →
           </button>
         </div>
-
       </div>
     `;
   });
 
   container.innerHTML = html;
 }
+
 
 
 /* Save new job */
