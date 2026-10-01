@@ -1087,6 +1087,17 @@
     .readiness-score{min-width:78px;text-align:center;border-radius:12px;padding:9px 10px;background:#eef5ff;border:1px solid #d8e7f8}
     .readiness-score strong{display:block;color:#0b2f6b;font-size:18px}
     .readiness-score span{color:#718096;font-size:8px;font-weight:900;letter-spacing:.08em}
+    .intelligence-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+    .intelligence-detail-card{border:1px solid #e1e8f0;border-radius:12px;padding:13px;background:#fff}
+    .intelligence-detail-card .detail-label{font-size:9px;font-weight:900;letter-spacing:.08em;color:#7a8798}
+    .intelligence-detail-card strong{display:block;color:#0b2f6b;font-size:16px;margin-top:5px}
+    .intelligence-signal{margin-top:14px;padding:14px;border-radius:12px;border:1px solid #e1e8f0;background:#f8fbff}
+    .intelligence-signal strong{color:#0b2f6b;font-size:12px}
+    .intelligence-action-box{margin-top:14px;padding:14px;border-radius:12px;background:#fff7ef;border:1px solid #ffd9bd}
+    .intelligence-action-box strong{color:#b84e08;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+    .intelligence-action-box p{margin-top:6px;color:#5d6675;font-size:12px;line-height:1.6}
+    @media(max-width:600px){.intelligence-detail-grid{grid-template-columns:1fr}}
+
     .intelligence-empty{border:1px dashed #cdd9e6;border-radius:14px;padding:28px;text-align:center;background:rgba(255,255,255,.65)}
     .intelligence-empty strong{display:block;color:#0b2f6b;margin-bottom:6px}
     .intelligence-empty span{color:#718096;font-size:12px}
@@ -5187,34 +5198,42 @@ function calculateHiringReadiness(job, candidate) {
   let score = 50;
   const reasons = [];
   const concerns = [];
+  const dimensions = [];
 
   const jobText = String(job?.jd_text || "").toLowerCase();
   const candidateSkills = Array.isArray(candidate?.skills)
     ? candidate.skills.map(skill => String(skill).toLowerCase().trim()).filter(Boolean)
     : [];
 
-  if (candidateSkills.length) {
-    const matched = candidateSkills.filter(skill => skill.length > 1 && jobText.includes(skill));
-    if (matched.length) {
-      score += Math.min(30, matched.length * 7);
-      reasons.push("Skills found in the candidate profile: " + matched.slice(0, 5).join(", ") + ".");
-    } else {
-      concerns.push("No entered candidate skill was found verbatim in the job description.");
-    }
+  const matched = candidateSkills.filter(skill => skill.length > 1 && jobText.includes(skill));
+  const skillPoints = candidateSkills.length ? Math.min(30, matched.length * 7) : 0;
+  if (matched.length) {
+    score += skillPoints;
+    reasons.push("Technical signals found: " + matched.slice(0, 5).join(", ") + ".");
+  } else if (candidateSkills.length) {
+    concerns.push("No entered candidate skill was found verbatim in the job description.");
   } else {
     concerns.push("Candidate skills are not yet populated.");
   }
+  dimensions.push({
+    label: "Technical fit",
+    points: skillPoints,
+    max: 30,
+    status: matched.length ? matched.length + " skill signal" + (matched.length === 1 ? "" : "s") + " matched" : "More skill evidence needed"
+  });
 
   const minExp = Number(job?.experience_min);
   const maxExp = Number(job?.experience_max);
   const candidateExp = Number(candidate?.total_experience);
-
+  let experiencePoints = 0;
   if (Number.isFinite(candidateExp) && Number.isFinite(minExp)) {
     if (candidateExp >= minExp && (!Number.isFinite(maxExp) || candidateExp <= maxExp)) {
-      score += 12;
+      experiencePoints = 12;
+      score += experiencePoints;
       reasons.push("Experience falls within the configured job range.");
     } else if (candidateExp >= minExp) {
-      score += 7;
+      experiencePoints = 7;
+      score += experiencePoints;
       concerns.push("Experience is above the configured maximum range.");
     } else {
       concerns.push("Experience is below the configured minimum.");
@@ -5222,21 +5241,163 @@ function calculateHiringReadiness(job, candidate) {
   } else {
     concerns.push("Experience information is incomplete.");
   }
+  dimensions.push({
+    label: "Experience fit",
+    points: experiencePoints,
+    max: 12,
+    status: experiencePoints === 12 ? "Within target range" : experiencePoints === 7 ? "Above target range" : "Below target or missing"
+  });
 
   const maxSalary = Number(job?.salary_max);
   const expectedSalary = Number(candidate?.expected_salary);
-
+  let compensationPoints = 0;
   if (Number.isFinite(expectedSalary) && Number.isFinite(maxSalary) && maxSalary > 0) {
     if (expectedSalary <= maxSalary) {
-      score += 4;
+      compensationPoints = 4;
+      score += compensationPoints;
       reasons.push("Expected salary is within the configured maximum.");
     } else {
       concerns.push("Expected salary is above the configured job maximum.");
     }
+  } else {
+    concerns.push("Compensation fit cannot be fully assessed yet.");
+  }
+  dimensions.push({
+    label: "Compensation fit",
+    points: compensationPoints,
+    max: 4,
+    status: compensationPoints ? "Within configured maximum" : "Needs review"
+  });
+
+  const jobLocation = String(job?.location || "").toLowerCase().trim();
+  const candidateLocation = String(candidate?.current_location || "").toLowerCase().trim();
+  let locationPoints = 0;
+  if (jobLocation && candidateLocation) {
+    const normalizeLocation = value => value
+      .replace(/bengaluru/g, "bangalore")
+      .replace(/blr/g, "bangalore")
+      .replace(/new delhi/g, "delhi")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    const normalizedJob = normalizeLocation(jobLocation);
+    const normalizedCandidate = normalizeLocation(candidateLocation);
+    const locationTokens = normalizedJob.split(/s+/).filter(token => token.length > 3);
+    const locationMatch = locationTokens.some(token => normalizedCandidate.includes(token));
+    if (locationMatch || /remote|anywhere|hybrid/i.test(jobLocation)) {
+      locationPoints = 5;
+      score += locationPoints;
+      reasons.push("Location shows alignment with the job requirement.");
+    } else {
+      concerns.push("Candidate location does not clearly match the job location.");
+    }
+  } else {
+    concerns.push("Location alignment is not yet fully captured.");
+  }
+  dimensions.push({
+    label: "Location",
+    points: locationPoints,
+    max: 5,
+    status: locationPoints ? "Aligned" : "Needs verification"
+  });
+
+  const notice = Number(candidate?.notice_period_days);
+  let joiningPoints = 0;
+  let joiningStatus = "Notice period missing";
+  if (Number.isFinite(notice)) {
+    if (notice <= 30) {
+      joiningPoints = 4;
+      score += joiningPoints;
+      joiningStatus = "Low joining risk · " + notice + " days";
+      reasons.push("Notice period is within 30 days.");
+    } else if (notice <= 60) {
+      joiningPoints = 2;
+      score += joiningPoints;
+      joiningStatus = "Moderate joining risk · " + notice + " days";
+      concerns.push("Notice period is between 31 and 60 days.");
+    } else {
+      joiningStatus = "High joining risk · " + notice + " days";
+      concerns.push("Notice period is above 60 days.");
+    }
+  } else {
+    concerns.push("Notice period is not yet captured.");
+  }
+  dimensions.push({
+    label: "Joining readiness",
+    points: joiningPoints,
+    max: 4,
+    status: joiningStatus
+  });
+
+  const evidenceFields = [
+    candidate?.skills?.length,
+    candidate?.total_experience,
+    candidate?.expected_salary,
+    candidate?.current_location,
+    candidate?.notice_period_days,
+    candidate?.current_title
+  ];
+  const populatedEvidence = evidenceFields.filter(value =>
+    value !== null && value !== undefined && value !== "" &&
+    !(Array.isArray(value) && value.length === 0)
+  ).length;
+  const confidence = Math.round((populatedEvidence / evidenceFields.length) * 100);
+  const readiness = Math.max(0, Math.min(100, Math.round(score)));
+
+  let nextAction = "Complete missing candidate data and validate the major fit risks before shortlisting.";
+  if (readiness >= 75 && concerns.length <= 2) {
+    nextAction = "Proceed to recruiter screening/interview and validate the remaining risk signals.";
+  } else if (readiness >= 60) {
+    nextAction = "Run a focused recruiter screen on the listed concerns before moving forward.";
   }
 
-  const readiness = Math.max(0, Math.min(100, Math.round(score)));
-  return { score: readiness, reasons, concerns };
+  return {
+    score: readiness,
+    reasons,
+    concerns,
+    dimensions,
+    confidence,
+    nextAction,
+    summary: readiness >= 75
+      ? "Strong first-pass alignment with the available evidence."
+      : readiness >= 60
+        ? "Promising alignment, but some hiring signals need validation."
+        : "Current evidence shows meaningful gaps or hiring risks."
+  };
+}
+
+function openHiringIntelligenceDetail(application, job, candidate) {
+  const readiness = calculateHiringReadiness(job, candidate);
+  const dimensionHtml = readiness.dimensions.map(d => {
+    const pct = d.max ? Math.round((d.points / d.max) * 100) : 0;
+    return '<div class="intelligence-detail-card">' +
+      '<div class="detail-label">' + escapeHtml(d.label) + '</div>' +
+      '<strong>' + d.points + '/' + d.max + '</strong>' +
+      '<div style="margin-top:8px;height:5px;border-radius:10px;background:#edf1f6;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:#ff7417;border-radius:10px;"></div></div>' +
+      '<div style="margin-top:6px;color:#7a8798;font-size:10px;">' + escapeHtml(d.status) + '</div>' +
+      '</div>';
+  }).join("");
+
+  const reasonsHtml = readiness.reasons.length
+    ? readiness.reasons.map(item => '<li>' + escapeHtml(item) + '</li>').join("")
+    : "<li>No positive signal has been established yet.</li>";
+  const concernsHtml = readiness.concerns.length
+    ? readiness.concerns.map(item => '<li>' + escapeHtml(item) + '</li>').join("")
+    : "<li>No material concerns captured from the current profile.</li>";
+
+  showkarmsthanDetail(
+    '<div class="role-badge">KARMSTHAN · HIRING INTELLIGENCE</div>' +
+    '<h2 style="font-size:28px;margin:10px 0 5px;color:#0b2f6b;">' + escapeHtml(candidate?.full_name || "Candidate") + '</h2>' +
+    '<p style="color:#718096;font-size:13px;">' + escapeHtml(candidate?.current_title || "Candidate") + ' · ' + escapeHtml(job?.title || "Job") + ' · Stage: ' + escapeHtml(applicationStatusLabel(application?.status)) + '</p>' +
+    '<div style="display:flex;align-items:center;gap:16px;margin-top:20px;padding:18px;border:1px solid #dfe7f0;border-radius:14px;background:linear-gradient(135deg,#f8fbff,#fff8f3);">' +
+      '<div style="width:76px;height:76px;border-radius:20px;background:#0b2f6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:900;">' + readiness.score + '</div>' +
+      '<div><div style="font-size:10px;font-weight:900;letter-spacing:.1em;color:#ff7417;">HIRING READINESS</div><strong style="display:block;margin-top:4px;color:#0b2f6b;font-size:17px;">' + escapeHtml(readiness.summary) + '</strong><span style="display:block;margin-top:5px;color:#7a8798;font-size:11px;">Evidence confidence: ' + readiness.confidence + '% · V1 transparent rules</span></div>' +
+    '</div>' +
+    '<div class="intelligence-detail-grid">' + dimensionHtml + '</div>' +
+    '<div class="intelligence-signal"><strong>WHY IT MATCHES</strong><ul style="margin:8px 0 0 18px;color:#66758b;font-size:12px;line-height:1.7;">' + reasonsHtml + '</ul></div>' +
+    '<div class="intelligence-signal"><strong>POTENTIAL RISKS</strong><ul style="margin:8px 0 0 18px;color:#66758b;font-size:12px;line-height:1.7;">' + concernsHtml + '</ul></div>' +
+    '<div class="intelligence-action-box"><strong>RECOMMENDED NEXT ACTION</strong><p>' + escapeHtml(readiness.nextAction) + '</p></div>' +
+    '<div style="margin-top:16px;color:#8a97a9;font-size:10px;line-height:1.6;">KARMSTHAN V1 is a transparent decision-support signal based on the information currently stored for this job and candidate; it is not an automated hiring decision.</div>'
+  );
 }
 
 function renderApplications(applications, jobMap, candidateMap) {
