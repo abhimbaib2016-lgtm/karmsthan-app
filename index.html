@@ -1591,6 +1591,111 @@ footer strong { color: #fff; }
   .dashboard-card { padding: 20px; }
 }
 
+  
+/* =========================================================
+   KARMSTHAN LANDING HEADER — mobile-first brand lockup
+   Based on the approved live-app layout reference.
+   ========================================================= */
+header {
+  height: 96px !important;
+  padding: 0 36px !important;
+  justify-content: flex-start !important;
+  background: #fff !important;
+  border-bottom: 1px solid #e6ebf2 !important;
+  box-shadow: none !important;
+}
+
+.karmsthan-brand {
+  gap: 0 !important;
+  align-items: center !important;
+}
+
+.karmsthan-logo-full {
+  width: 245px !important;
+  height: 72px !important;
+  flex: 0 0 245px !important;
+  overflow: visible !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.karmsthan-logo-full svg {
+  width: 245px !important;
+  height: auto !important;
+  display: block !important;
+}
+
+.karmsthan-tagline-lockup {
+  display: block;
+  margin-top: -13px;
+  margin-left: 61px;
+  color: #53647a;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .18em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: none !important;
+}
+
+@media (max-width: 800px) {
+  header {
+    height: 132px !important;
+    padding: 0 34px !important;
+    align-items: center !important;
+  }
+
+  .karmsthan-logo-full {
+    width: 230px !important;
+    height: 70px !important;
+    flex-basis: 230px !important;
+  }
+
+  .karmsthan-logo-full svg {
+    width: 230px !important;
+  }
+
+  .karmsthan-tagline-lockup {
+    margin-top: -11px;
+    margin-left: 57px;
+    font-size: 7px;
+    letter-spacing: .16em;
+  }
+
+  main {
+    padding-top: 35px !important;
+  }
+
+  .hero {
+    padding-top: 17px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  header {
+    padding-left: 34px !important;
+    padding-right: 20px !important;
+  }
+
+  .karmsthan-logo-full {
+    width: 225px !important;
+    flex-basis: 225px !important;
+  }
+
+  .karmsthan-logo-full svg {
+    width: 225px !important;
+  }
+
+  .karmsthan-tagline-lockup {
+    margin-left: 56px;
+    font-size: 6.8px;
+  }
+}
+
   </style>
 </head>
 
@@ -1598,28 +1703,26 @@ footer strong { color: #fff; }
 
 <header>
   <div class="brand karmsthan-brand" aria-label="karmsthan">
-    <div class="karmsthan-logo-full" aria-hidden="true">
-      <svg viewBox="0 0 1260 390" xmlns="http://www.w3.org/2000/svg">
-        <g>
-          <path d="M18 42H109V154L18 265Z" fill="#0b2f6b"/>
-          <path d="M126 249L194 190L319 352H214Z" fill="#0b2f6b"/>
-          <circle cx="174" cy="82" r="38" fill="#ff7417"/>
-          <path d="M20 365C19 294 52 245 100 208C153 167 215 137 281 85L257 135L316 105L286 168L279 143C215 195 153 239 103 287C64 324 39 350 20 365Z" fill="#ff7417"/>
-          <path d="M286 85L327 73L316 105Z" fill="#ff7417"/>
-        </g>
-        <text x="340" y="270" font-family="Arial, Helvetica, sans-serif" font-size="205" font-weight="800"
-          textLength="865" lengthAdjust="spacingAndGlyphs" fill="#0b2f6b">karmsthan</text>
-        <text x="1208" y="158" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#0b2f6b">™</text>
-      </svg>
+    <div>
+      <div class="karmsthan-logo-full" aria-hidden="true">
+        <svg viewBox="0 0 1260 390" xmlns="http://www.w3.org/2000/svg">
+          <g>
+            <path d="M18 42H109V154L18 265Z" fill="#0b2f6b"/>
+            <path d="M126 249L194 190L319 352H214Z" fill="#0b2f6b"/>
+            <circle cx="174" cy="82" r="38" fill="#ff7417"/>
+            <path d="M20 365C19 294 52 245 100 208C153 167 215 137 281 85L257 135L316 105L286 168L279 143C215 195 153 239 103 287C64 324 39 350 20 365Z" fill="#ff7417"/>
+            <path d="M286 85L327 73L316 105Z" fill="#ff7417"/>
+          </g>
+          <text x="340" y="270" font-family="Arial, Helvetica, sans-serif" font-size="205" font-weight="800"
+            textLength="865" lengthAdjust="spacingAndGlyphs" fill="#0b2f6b">karmsthan</text>
+          <text x="1208" y="158" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#0b2f6b">™</text>
+        </svg>
+      </div>
+      <div class="karmsthan-tagline-lockup">RIGHT PEOPLE&nbsp;&nbsp; RIGHT FUTURES</div>
     </div>
   </div>
 
-  <div class="header-right">
-    <div class="status">
-      <span class="status-dot"></span>
-      Platform online
-    </div>
-  </div>
+  <div class="header-right" aria-hidden="true"></div>
 </header>
 
 
