@@ -5528,78 +5528,20 @@ function openApplicationIntelligence(applicationId) {
 }
 
 function renderApplications(applications, jobMap, candidateMap) {
-  const container = document.getElementById("applicationListContainer");
-  if (!container) return;
-
-  window.karmsthanApplicationIntelligence = {};
-
-  let html = "";
-
-  applications.forEach(application => {
-    const job = jobMap[application.job_id];
-    const candidate = candidateMap[application.candidate_id];
-    const readiness = calculateHiringReadiness(job, candidate);
-
-    window.karmsthanApplicationIntelligence[application.id] = {
-      application,
-      job,
-      candidate
-    };
-
-    html += `
-      <div style="border:1px solid #e6e9ef;border-radius:14px;padding:18px;margin-bottom:12px;background:#fff;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;">
-          <div>
-            <strong style="font-size:16px;">${escapeHtml(candidate.full_name)}</strong>
-            <div style="margin-top:6px;color:#7a8499;font-size:12px;">
-              Applied to <b>${escapeHtml(job.title)}</b>
-              · ${escapeHtml(candidate.current_title || "Title not specified")}
-            </div>
-          </div>
-
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="padding:6px 10px;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:10px;font-weight:800;">
-              ${escapeHtml(applicationStatusLabel(application.status))}
-            </span>
-
-            <select aria-label="Application status" onchange="updateApplicationStatus('${application.id}', this.value)" style="height:34px;border:1px solid #dfe3eb;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;">
-              ${APPLICATION_STATUSES.map(stage =>
-                `<option value="${stage}" ${application.status === stage ? "selected" : ""}>${escapeHtml(applicationStatusLabel(stage))}</option>`
-              ).join("")}
-            </select>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px;">
-          <div class="stat-card"><div class="stat-label">READINESS</div><strong style="font-size:21px;">${readiness.score}/100</strong></div>
-          <div class="stat-card"><div class="stat-label">EXPERIENCE</div><strong>${candidate.total_experience != null ? escapeHtml(candidate.total_experience + " yrs") : "—"}</strong></div>
-          <div class="stat-card"><div class="stat-label">NOTICE</div><strong>${candidate.notice_period_days != null ? escapeHtml(candidate.notice_period_days + " days") : "—"}</strong></div>
-          <div class="stat-card"><div class="stat-label">EXPECTED SALARY</div><strong>${candidate.expected_salary != null ? escapeHtml("₹" + Number(candidate.expected_salary).toLocaleString("en-IN")) : "—"}</strong></div>
-        </div>
-
-        <div style="margin-top:15px;border-top:1px solid #e6e9ef;padding-top:14px;">
-          <button type="button" class="secondary-btn" style="width:auto;padding:8px 12px;margin-bottom:12px;" onclick="openApplicationIntelligence('${application.id}')">
-            View intelligence detail
-          </button>
-          <strong style="font-size:12px;">Why it matches</strong>
-          <p style="margin-top:5px;color:#667085;font-size:12px;line-height:1.6;">
-            ${escapeHtml(readiness.reasons.join(" ") || "Add candidate skills and job requirements for stronger matching signals.")}
-          </p>
-          ${readiness.concerns.length ? `
-            <strong style="display:block;margin-top:9px;font-size:12px;">Potential concerns</strong>
-            <p style="margin-top:5px;color:#667085;font-size:12px;line-height:1.6;">
-              ${escapeHtml(readiness.concerns.join(" "))}
-            </p>
-          ` : ""}
-        </div>
-      </div>
-    `;
+  const container=document.getElementById("applicationListContainer"); if(!container)return;
+  window.karmsthanApplicationIntelligence={};
+  const nextAction=status=>({submitted:"Review new submission",screening:"Complete recruiter screen",applied:"Review and decide whether to screen",shortlisted:"Schedule or complete next evaluation",interview:"Collect interview feedback",selected:"Prepare offer decision",offer:"Follow up on offer",accepted:"Protect joining momentum",joined:"Capture hiring outcome",rejected:"No action — retained for history"}[status]||"Review application");
+  let html="";
+  applications.forEach(application=>{
+    const job=jobMap[application.job_id],candidate=candidateMap[application.candidate_id];
+    window.karmsthanApplicationIntelligence[application.id]={application,job,candidate};
+    const updated=application.updated_at||application.created_at;
+    const updatedLabel=updated?new Date(updated).toLocaleDateString("en-IN",{day:"2-digit",month:"short"}):"—";
+    html+='<div class="pipeline-card"><div class="pipeline-card-main"><div><strong class="pipeline-candidate">' + escapeHtml(candidate.full_name) + '</strong><div class="pipeline-role">' + escapeHtml(job.title) + " · " + escapeHtml(candidate.current_title||"Title not specified") + '</div></div><div class="pipeline-stage-control"><span class="pipeline-stage">' + escapeHtml(applicationStatusLabel(application.status)) + '</span><select aria-label="Application stage" onchange="updateApplicationStatus(\'' + application.id + '\', this.value)">' + APPLICATION_STATUSES.map(stage=>'<option value="' + stage + '" ' + (application.status===stage?"selected":"") + '>' + escapeHtml(applicationStatusLabel(stage)) + '</option>').join("") + '</select></div></div>';
+    html+='<div class="pipeline-card-meta"><div><span>LAST ACTIVITY</span><strong>' + escapeHtml(updatedLabel) + '</strong></div><div><span>NEXT ACTION</span><strong>' + escapeHtml(nextAction(application.status)) + '</strong></div><div><span>SOURCE</span><strong>' + escapeHtml(application.source||"Not captured") + '</strong></div></div>';
+    html+='<div class="pipeline-card-actions"><button type="button" class="secondary-btn" onclick="openCandidateDetails(\'' + candidate.id + '\')">Candidate 360</button><button type="button" class="secondary-btn" onclick="openApplicationIntelligence(\'' + application.id + '\')">KARMSTHAN Intelligence</button></div></div>';
   });
-
-  container.innerHTML =
-    '<div style="margin-bottom:15px;color:#7a8499;font-size:12px;">' +
-    applications.length + " application" + (applications.length === 1 ? "" : "s") +
-    "</div>" + html;
+  container.innerHTML='<div style="margin-bottom:15px;color:#7a8499;font-size:12px;">'+applications.length+" application"+(applications.length===1?"":"s")+" · operational pipeline</div>"+html;
 }
 
 async function updateApplicationStatus(applicationId, status) {
@@ -5636,45 +5578,27 @@ function showkarmsthanDetail(html){
 async function openJobDetails(jobId){
   try{
     const {company}=await getCurrentCompany();
-    const {data:job,error}=await supabaseClient.from("jobs").select("*").eq("id",jobId).eq("company_id",company.id).maybeSingle();
-    if(error)throw error;if(!job)throw new Error("Job could not be found.");
-    const exp=job.experience_min!=null||job.experience_max!=null?`${job.experience_min??"—"}–${job.experience_max??"—"} years`:"Not specified";
-    const sal=job.salary_min!=null||job.salary_max!=null?`${job.currency||"INR"} ${job.salary_min??"—"}–${job.salary_max??"—"}`:"Not specified";
-    showkarmsthanDetail(`<div class="role-badge">JOB DETAILS</div>
-      <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(job.title)}</h2>
-      <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(job.department||"Department not specified")} · ${escapeHtml(job.location||"Location not specified")}</p>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
-        <div class="stat-card"><div class="stat-label">STATUS</div><b>${escapeHtml((job.status||"draft").toUpperCase())}</b></div>
-        <div class="stat-card"><div class="stat-label">EXPERIENCE</div><b>${escapeHtml(exp)}</b></div>
-        <div class="stat-card"><div class="stat-label">SALARY</div><b>${escapeHtml(sal)}</b></div>
-      </div>
-      <h3 style="margin-bottom:8px;">Job description</h3>
-      <div style="white-space:pre-wrap;background:#fafbff;border:1px solid #e6e9ef;border-radius:12px;padding:18px;color:#475467;font-size:13px;line-height:1.7;">${escapeHtml(job.jd_text||"No job description provided.")}</div>
-      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closekarmsthanDetail();openCandidateManagement()">Manage Candidates</button>`);
+    const [{data:job,error:jobError},{data:applications,error:appError}]=await Promise.all([supabaseClient.from("jobs").select("*").eq("id",jobId).eq("company_id",company.id).maybeSingle(),supabaseClient.from("applications").select("id,status").eq("job_id",jobId)]);
+    if(jobError)throw jobError;if(appError)throw appError;if(!job)throw new Error("Job could not be found.");
+    const exp=job.experience_min!=null||job.experience_max!=null?String(job.experience_min??"—")+"–"+String(job.experience_max??"—")+" years":"Not specified";
+    const sal=job.salary_min!=null||job.salary_max!=null?(job.currency||"INR")+" "+(job.salary_min!=null?Number(job.salary_min).toLocaleString("en-IN"):"—")+"–"+(job.salary_max!=null?Number(job.salary_max).toLocaleString("en-IN"):"—"):"Not specified";
+    const active=(applications||[]).filter(a=>a.status!=="rejected").length,interviewed=(applications||[]).filter(a=>["interview","selected","offer","accepted","joined"].includes(a.status)).length,offered=(applications||[]).filter(a=>["offer","accepted","joined"].includes(a.status)).length;
+    showkarmsthanDetail('<div class="role-badge">JOB · HIRING DEMAND</div><h2 style="font-size:28px;margin:10px 0 7px;color:#0b2f6b;">' + escapeHtml(job.title) + '</h2><p style="color:#7a8499;font-size:13px;margin-bottom:22px;">' + escapeHtml(job.department||"Department not specified")+" · "+escapeHtml(job.location||"Location not specified")+" · "+escapeHtml(job.employment_type||"Employment type not specified") + '</p><div class="job-detail-pulse"><div><span>ACTIVE PIPELINE</span><strong>' + active + '</strong></div><div><span>INTERVIEWED+</span><strong>' + interviewed + '</strong></div><div><span>OFFERS+</span><strong>' + offered + '</strong></div></div><div class="job-detail-grid"><div class="job-detail-box"><span>STATUS</span><strong>' + escapeHtml((job.status||"draft").toUpperCase()) + '</strong></div><div class="job-detail-box"><span>EXPERIENCE</span><strong>' + escapeHtml(exp) + '</strong></div><div class="job-detail-box"><span>COMPENSATION</span><strong>' + escapeHtml(sal) + '</strong></div></div><div class="job-detail-section"><div class="stat-label">HIRING REQUIREMENT</div><div style="white-space:pre-wrap;color:#475467;font-size:13px;line-height:1.7;">' + escapeHtml(job.jd_text||"No job description provided.") + '</div></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;"><button type="button" class="primary-btn" style="width:auto;padding:11px 18px;" onclick="closekarmsthanDetail();openApplicationManagement()">View Pipeline</button><button type="button" class="secondary-btn" style="width:auto;padding:11px 18px;" onclick="closekarmsthanDetail();openWorkspaceView(\'intelligence\')">View Intelligence</button></div>');
   }catch(e){console.error(e);alert(e.message||"Unable to open job details.");}
 }
 
 async function openCandidateDetails(candidateId){
   try{
     const {companyId}=await getCurrentCandidateUser();
-    const {data:candidate,error}=await supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle();
-    if(error)throw error;if(!candidate)throw new Error("Candidate could not be found.");
+    const [{data:candidate,error:candidateError},{data:applications,error:appError}]=await Promise.all([supabaseClient.from("candidates").select("*").eq("id",candidateId).eq("company_id",companyId).maybeSingle(),supabaseClient.from("applications").select("id,job_id,status,created_at,updated_at").eq("candidate_id",candidateId).order("created_at",{ascending:false})]);
+    if(candidateError)throw candidateError;if(appError)throw appError;if(!candidate)throw new Error("Candidate could not be found.");
+    const jobIds=(applications||[]).map(a=>a.job_id).filter(Boolean);let jobs=[];
+    if(jobIds.length){const {data,error}=await supabaseClient.from("jobs").select("id,title,location").in("id",jobIds).eq("company_id",companyId);if(error)throw error;jobs=data||[];}
+    const jobMap=Object.fromEntries(jobs.map(j=>[j.id,j]));
     const skills=Array.isArray(candidate.skills)?candidate.skills:[];
-    const skillHtml=skills.length?skills.map(s=>`<span style="display:inline-block;padding:6px 9px;margin:0 6px 6px 0;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:11px;font-weight:700;">${escapeHtml(s)}</span>`).join(""):"<span style='color:#98a2b3'>No skills added yet.</span>";
-    showkarmsthanDetail(`<div class="role-badge">CANDIDATE PROFILE</div>
-      <h2 style="font-size:28px;margin:10px 0 7px;">${escapeHtml(candidate.full_name)}</h2>
-      <p style="color:#7a8499;font-size:13px;margin-bottom:22px;">${escapeHtml(candidate.current_title||"Title not specified")} · ${escapeHtml(candidate.current_company||"Company not specified")}</p>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
-        <div class="stat-card"><div class="stat-label">EXPERIENCE</div><b>${escapeHtml(candidate.total_experience!=null?candidate.total_experience+" years":"Not specified")}</b></div>
-        <div class="stat-card"><div class="stat-label">NOTICE</div><b>${escapeHtml(candidate.notice_period_days!=null?candidate.notice_period_days+" days":"Not specified")}</b></div>
-        <div class="stat-card"><div class="stat-label">EXPECTED SALARY</div><b>${escapeHtml(candidate.expected_salary!=null?"INR "+Number(candidate.expected_salary).toLocaleString("en-IN"):"Not specified")}</b></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
-        <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">CONTACT</div><div style="font-size:13px;line-height:1.8;">${escapeHtml(candidate.email||"Email not provided")}<br>${escapeHtml(candidate.phone||"Phone not provided")}<br>${escapeHtml(candidate.current_location||"Location not specified")}</div></div>
-        <div style="border:1px solid #e6e9ef;border-radius:12px;padding:18px;"><div class="stat-label">SKILLS</div><div style="margin-top:7px;">${skillHtml}</div></div>
-      </div>
-      <div style="border-top:1px solid #e6e9ef;padding-top:20px;"><h3>karmsthan intelligence</h3><p style="margin-top:7px;">This profile is ready for job matching, application tracking and Hiring Readiness analysis.</p></div>
-      <button type="button" class="primary-btn" style="width:auto;padding:11px 18px;margin-top:20px;" onclick="closekarmsthanDetail();openJobManagement()">View Jobs</button>`);
+    const skillHtml=skills.length?skills.map(s=>'<span style="display:inline-block;padding:6px 9px;margin:0 6px 6px 0;border-radius:20px;background:#eef0ff;color:#3949ab;font-size:11px;font-weight:700;">'+escapeHtml(s)+"</span>").join(""):"<span style='color:#98a2b3'>No skills added yet.</span>";
+    const historyHtml=(applications||[]).length?applications.map(app=>'<div class="candidate-history-row"><div><strong>'+escapeHtml(jobMap[app.job_id]?.title||"Job")+'</strong><span>'+escapeHtml(jobMap[app.job_id]?.location||"Location not specified")+'</span></div><div><b>'+escapeHtml(applicationStatusLabel(app.status))+'</b><small>'+(app.updated_at?new Date(app.updated_at).toLocaleDateString("en-IN",{day:"2-digit",month:"short"}):"—")+'</small></div></div>').join(""):'<div style="color:#8a97a9;font-size:12px;">No applications yet. This candidate is currently part of your talent pool.</div>';
+    showkarmsthanDetail('<div class="role-badge">TALENT · CANDIDATE 360</div><h2 style="font-size:28px;margin:10px 0 7px;color:#0b2f6b;">'+escapeHtml(candidate.full_name)+'</h2><p style="color:#7a8499;font-size:13px;margin-bottom:22px;">'+escapeHtml(candidate.current_title||"Title not specified")+" · "+escapeHtml(candidate.current_company||"Company not specified")+'</p><div class="candidate-profile-grid"><div class="job-detail-box"><span>EXPERIENCE</span><strong>'+escapeHtml(candidate.total_experience!=null?candidate.total_experience+" years":"Not specified")+'</strong></div><div class="job-detail-box"><span>NOTICE</span><strong>'+escapeHtml(candidate.notice_period_days!=null?candidate.notice_period_days+" days":"Not specified")+'</strong></div><div class="job-detail-box"><span>EXPECTED SALARY</span><strong>'+escapeHtml(candidate.expected_salary!=null?"INR "+Number(candidate.expected_salary).toLocaleString("en-IN"):"Not specified")+'</strong></div></div><div class="candidate-360-columns"><div class="job-detail-section"><div class="stat-label">PROFILE</div><div style="font-size:13px;line-height:1.8;">'+escapeHtml(candidate.email||"Email not provided")+"<br>"+escapeHtml(candidate.phone||"Phone not provided")+"<br>"+escapeHtml(candidate.current_location||"Location not specified")+'</div><div style="margin-top:15px;">'+skillHtml+'</div></div><div class="job-detail-section"><div class="stat-label">APPLICATION HISTORY</div><div class="candidate-history">'+historyHtml+'</div></div></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;"><button type="button" class="primary-btn" style="width:auto;padding:11px 18px;" onclick="closekarmsthanDetail();openApplicationManagement()">Open Pipeline</button><button type="button" class="secondary-btn" style="width:auto;padding:11px 18px;" onclick="closekarmsthanDetail();openWorkspaceView(\'intelligence\')">View Intelligence</button></div>');
   }catch(e){console.error(e);alert(e.message||"Unable to open candidate profile.");}
 }
 
