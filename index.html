@@ -1140,6 +1140,27 @@
     .intelligence-decision-grid span{display:block;color:#7b8798;font-size:9px;font-weight:900;letter-spacing:.1em}
     .intelligence-decision-grid strong{display:block;color:#0b2f6b;font-size:22px;margin-top:5px}
     .intelligence-decision-grid small{display:block;color:#8a97a9;font-size:10px;margin-top:3px}
+    .intelligence-role-section{margin-top:18px;border:1px solid #dfe7f1;border-radius:18px;background:#fff;padding:18px}
+    .intelligence-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin-bottom:13px}
+    .intelligence-section-head strong{display:block;color:#0b2f6b;font-size:11px;letter-spacing:.09em}
+    .intelligence-section-head span{display:block;color:#7b8798;font-size:11px;margin-top:4px;line-height:1.5}
+    .intelligence-section-head>span{font-size:9px;font-weight:900;letter-spacing:.08em;color:#ff7417;white-space:nowrap}
+    .intelligence-role-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .intelligence-role-card{border:1px solid #e3e9f1;border-radius:15px;padding:15px;background:linear-gradient(180deg,#fff,#fbfcff)}
+    .intelligence-role-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .intelligence-role-top strong{display:block;color:#0b2f6b;font-size:14px;margin-top:4px}
+    .role-intelligence-label{font-size:8px!important;font-weight:900!important;letter-spacing:.09em;color:#8a97a9!important}
+    .role-health{font-size:9px!important;font-weight:900!important;padding:5px 8px;border-radius:999px;white-space:nowrap}
+    .role-health.risk{background:#fff0ed;color:#c2410c}.role-health.watch{background:#fff7e8;color:#b45309}.role-health.healthy{background:#ecfdf3;color:#15803d}.role-health.neutral{background:#f2f4f7;color:#667085}
+    .intelligence-role-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+    .intelligence-role-metrics div{padding:9px;border-radius:10px;background:#f7f9fc}
+    .intelligence-role-metrics span{display:block;font-size:7px;font-weight:900;letter-spacing:.07em;color:#8a97a9}
+    .intelligence-role-metrics strong{display:block;margin-top:4px;color:#0b2f6b;font-size:16px}
+    .intelligence-role-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid #edf1f5}
+    .intelligence-role-footer>span{font-size:10px;color:#7b8798}
+    .intelligence-role-footer button{width:auto;padding:7px 10px;font-size:10px}
+    .intelligence-candidate-queue{margin:22px 2px 11px}
+    @media(max-width:760px){.intelligence-role-grid{grid-template-columns:1fr}.intelligence-role-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.intelligence-section-head{align-items:flex-start;flex-direction:column}}
     .intelligence-why{display:flex;gap:10px;align-items:flex-start;border:1px solid #ffe0cd;background:#fff8f3;border-radius:13px;padding:13px 15px;margin-bottom:14px}
     .intelligence-why strong{color:#e95e00;font-size:9px;letter-spacing:.1em;white-space:nowrap}
     .intelligence-why span{color:#6d7d93;font-size:11px;line-height:1.55}
@@ -3751,6 +3772,31 @@ async function loadHiringIntelligence(showErrors = false) {
     const priorityScore = row => (row.readiness.score<60?40:0) + (row.readiness.confidence<50?20:0) + (row.app.updated_at && new Date(row.app.updated_at).getTime()<staleCutoff && !["rejected","joined"].includes(row.app.status)?15:0);
     const prioritizedRows=[...rows].sort((a,b)=>priorityScore(b)-priorityScore(a));
     const topRow=rows[0];
+    const roleRows = (jobs || []).map(job => {
+      const jobRows = rows.filter(row => row.job.id === job.id);
+      const jobAvg = jobRows.length ? Math.round(jobRows.reduce((sum, row) => sum + row.readiness.score, 0) / jobRows.length) : null;
+      const jobEvidence = jobRows.filter(row => row.readiness.confidence < 50).length;
+      const jobStalled = jobRows.filter(row => row.app.updated_at && new Date(row.app.updated_at).getTime() < staleCutoff && !["rejected","joined"].includes(row.app.status)).length;
+      const jobOffers = jobRows.filter(row => ["offer","accepted","joined"].includes(row.app.status)).length;
+      const jobReview = jobRows.filter(row => row.readiness.score < 60).length;
+      return { job, count: jobRows.length, avg: jobAvg, evidence: jobEvidence, stalled: jobStalled, offers: jobOffers, review: jobReview };
+    }).filter(item => item.count > 0 || !["closed","archived"].includes(String(item.job.status || "").toLowerCase()))
+      .sort((a,b) => ((b.review * 3) + (b.evidence * 2) + b.stalled) - ((a.review * 3) + (a.evidence * 2) + a.stalled));
+
+    const roleIntelligence = '<div class="intelligence-role-section">' +
+      '<div class="intelligence-section-head"><div><strong>ROLE INTELLIGENCE</strong><span>Job-level health before you drill into individual candidates.</span></div><span>DEMAND → EVIDENCE → RISK</span></div>' +
+      '<div class="intelligence-role-grid">' +
+      roleRows.slice(0, 6).map(item => {
+        const health = item.count === 0 ? "No pipeline yet" : item.review > 0 ? "Attention needed" : item.stalled > 0 || item.evidence > 0 ? "Needs monitoring" : "Pipeline looks healthy";
+        const healthClass = item.count === 0 ? "neutral" : item.review > 0 ? "risk" : item.stalled > 0 || item.evidence > 0 ? "watch" : "healthy";
+        return '<div class="intelligence-role-card">' +
+          '<div class="intelligence-role-top"><div><span class="role-intelligence-label">ROLE</span><strong>' + escapeHtml(item.job.title || "Untitled job") + '</strong></div><span class="role-health ' + healthClass + '">' + escapeHtml(health) + '</span></div>' +
+          '<div class="intelligence-role-metrics"><div><span>PIPELINE</span><strong>' + item.count + '</strong></div><div><span>AVG READINESS</span><strong>' + (item.avg == null ? "—" : item.avg) + '</strong></div><div><span>REVIEW</span><strong>' + item.review + '</strong></div><div><span>EVIDENCE GAPS</span><strong>' + item.evidence + '</strong></div></div>' +
+          '<div class="intelligence-role-footer"><span>' + item.stalled + ' stalled · ' + item.offers + ' offer/joining</span><button type="button" class="secondary-btn" onclick="openApplicationManagement()">Open Pipeline →</button></div>' +
+        '</div>';
+      }).join("") +
+      '</div></div>';
+
     const intelligenceBanner='<div class="intelligence-decision-grid">' +
       '<div><span>NEEDS REVIEW</span><strong>'+riskRows.length+'</strong><small>Low readiness signals</small></div>' +
       '<div><span>EVIDENCE GAPS</span><strong>'+evidenceGapRows.length+'</strong><small>Profiles need better data</small></div>' +
@@ -3758,7 +3804,7 @@ async function loadHiringIntelligence(showErrors = false) {
       '<div><span>STRONGEST SIGNAL</span><strong>'+(topRow?topRow.readiness.score:"—")+'</strong><small>'+(topRow?escapeHtml(topRow.candidate.full_name):"No candidate")+'</small></div>' +
       '</div>' +
       '<div class="intelligence-why"><strong>HOW TO READ THIS</strong><span>karmsthan Intelligence is not another candidate list. It prioritizes situations that may require recruiter attention, explains the evidence behind each signal, and keeps the final decision with the hiring team.</span></div>';
-    list.innerHTML=intelligenceBanner+prioritizedRows.slice(0,8).map(row=>{
+    list.innerHTML=intelligenceBanner+roleIntelligence+ '<div class="intelligence-section-head intelligence-candidate-queue"><div><strong>DECISION QUEUE</strong><span>Candidate-job situations that currently need explanation or action.</span></div><span>'+prioritizedRows.length+' CONNECTED</span></div>' + prioritizedRows.slice(0,8).map(row=>{
       const name=row.candidate.full_name||"Unnamed candidate";
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase()||"K";
       const signal=row.readiness.concerns[0]||row.readiness.reasons[0]||"Evidence is currently aligned.";
