@@ -3766,7 +3766,7 @@ async function loadHiringIntelligence(showErrors = false) {
       '<div><span>STALL RISK</span><strong>'+stalledRows.length+'</strong><small>Applications inactive for 3+ days</small></div>' +
       '<div><span>STRONGEST SIGNAL</span><strong>'+(topRow?topRow.readiness.score:"—")+'</strong><small>'+(topRow?escapeHtml(topRow.candidate.full_name):"No candidate")+'</small></div>' +
       '</div>' +
-      '<div class="intelligence-why"><strong>HOW TO READ THIS</strong><span>KARMSTHAN Intelligence is not another candidate list. It prioritizes situations that may require recruiter attention, explains the evidence behind each signal, and keeps the final decision with the hiring team.</span></div>';
+      '<div class="intelligence-why"><strong>HOW TO READ THIS</strong><span>karmsthan Intelligence is not another candidate list. It prioritizes situations that may require recruiter attention, explains the evidence behind each signal, and keeps the final decision with the hiring team.</span></div>';
     list.innerHTML=intelligenceBanner+prioritizedRows.slice(0,8).map(row=>{
       const name=row.candidate.full_name||"Unnamed candidate";
       const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase()||"K";
