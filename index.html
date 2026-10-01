@@ -5318,7 +5318,7 @@ function calculateHiringReadiness(job, candidate) {
   const notice = Number(candidate?.notice_period_days);
   let joiningPoints = 0;
   let joiningStatus = "Notice period missing";
-  if (Number.isFinite(notice)) {
+  if (Number.isFinite(notice) && notice > 0) {
     if (notice <= 30) {
       joiningPoints = 4;
       score += joiningPoints;
@@ -5344,12 +5344,12 @@ function calculateHiringReadiness(job, candidate) {
   });
 
   const evidenceFields = [
-    candidate?.skills?.length,
-    candidate?.total_experience,
-    candidate?.expected_salary,
-    candidate?.current_location,
-    candidate?.notice_period_days,
-    candidate?.current_title
+    Array.isArray(candidate?.skills) && candidate.skills.length ? candidate.skills.length : null,
+    Number.isFinite(candidateExp) && candidateExp > 0 ? candidateExp : null,
+    Number.isFinite(expectedSalary) && expectedSalary > 0 ? expectedSalary : null,
+    candidate?.current_location || null,
+    Number.isFinite(notice) && notice > 0 ? notice : null,
+    candidate?.current_title || null
   ];
   const populatedEvidence = evidenceFields.filter(value =>
     value !== null && value !== undefined && value !== "" &&
