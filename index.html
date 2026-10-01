@@ -5385,7 +5385,7 @@ function openHiringIntelligenceDetail(application, job, candidate) {
     : "<li>No material concerns captured from the current profile.</li>";
 
   showkarmsthanDetail(
-    '<div class="role-badge">KARMSTHAN · HIRING INTELLIGENCE</div>' +
+    '<div class="role-badge">karmsthan · HIRING INTELLIGENCE</div>' +
     '<h2 style="font-size:28px;margin:10px 0 5px;color:#0b2f6b;">' + escapeHtml(candidate?.full_name || "Candidate") + '</h2>' +
     '<p style="color:#718096;font-size:13px;">' + escapeHtml(candidate?.current_title || "Candidate") + ' · ' + escapeHtml(job?.title || "Job") + ' · Stage: ' + escapeHtml(applicationStatusLabel(application?.status)) + '</p>' +
     '<div style="display:flex;align-items:center;gap:16px;margin-top:20px;padding:18px;border:1px solid #dfe7f0;border-radius:14px;background:linear-gradient(135deg,#f8fbff,#fff8f3);">' +
@@ -5396,7 +5396,7 @@ function openHiringIntelligenceDetail(application, job, candidate) {
     '<div class="intelligence-signal"><strong>WHY IT MATCHES</strong><ul style="margin:8px 0 0 18px;color:#66758b;font-size:12px;line-height:1.7;">' + reasonsHtml + '</ul></div>' +
     '<div class="intelligence-signal"><strong>POTENTIAL RISKS</strong><ul style="margin:8px 0 0 18px;color:#66758b;font-size:12px;line-height:1.7;">' + concernsHtml + '</ul></div>' +
     '<div class="intelligence-action-box"><strong>RECOMMENDED NEXT ACTION</strong><p>' + escapeHtml(readiness.nextAction) + '</p></div>' +
-    '<div style="margin-top:16px;color:#8a97a9;font-size:10px;line-height:1.6;">KARMSTHAN V1 is a transparent decision-support signal based on the information currently stored for this job and candidate; it is not an automated hiring decision.</div>'
+    '<div style="margin-top:16px;color:#8a97a9;font-size:10px;line-height:1.6;">karmsthan V1 is a transparent decision-support signal based on the information currently stored for this job and candidate; it is not an automated hiring decision.</div>'
   );
 }
 
