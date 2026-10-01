@@ -4955,25 +4955,7 @@ document
    ========================================================= */
 
 async function openCandidateManagement() {
-
-    const candidateView =
-        document.getElementById("candidateManagementView");
-
-    if (!candidateView) {
-        console.error("Candidate Management view not found.");
-        return;
-    }
-
-    candidateView.classList.remove("hidden");
-
-    candidateView.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
-
-    if (typeof loadCandidates === "function") {
-        await loadCandidates();
-    }
+  openWorkspaceView("candidates");
 }/* =========================================================
    SHOW CANDIDATE FORM
    ========================================================= */
